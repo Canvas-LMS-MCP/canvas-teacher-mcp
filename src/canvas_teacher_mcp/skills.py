@@ -105,6 +105,7 @@ def register(server, execution_tools: set[str]) -> None:
         return
 
     missing: list[str] = []
+    collisions: list[str] = []
     seen: set[str] = set()
     for doc in _documents(base):
         text = doc.read_text(encoding="utf-8")
@@ -115,7 +116,12 @@ def register(server, execution_tools: set[str]) -> None:
 
         # A `<name>/SKILL.md` and a stray `<name>.md` can claim the same name; the folder wins
         # because `_documents` yields it first.
-        if name in seen or name in execution_tools:
+        if name in seen:
+            continue
+        # A skill and an execution tool sharing a name would silently drop one of them — and the
+        # dropped one is invisible, not broken, so nothing would ever report it. Stop instead.
+        if name in execution_tools:
+            collisions.append(name)
             continue
         seen.add(name)
 
@@ -125,6 +131,11 @@ def register(server, execution_tools: set[str]) -> None:
 
         server.add_tool(_reader(doc), name=name, description=description)
 
+    if collisions:
+        raise RuntimeError(
+            "a skill and an execution tool share a name, so one of them would be invisible: "
+            + ", ".join(collisions) + ". Rename the tool."
+        )
     if missing:
         raise RuntimeError(
             "skill declares a tool this server does not provide: " + "; ".join(missing)

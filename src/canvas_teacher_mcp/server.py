@@ -10,7 +10,8 @@ from __future__ import annotations
 from mcp.server.mcpserver import MCPServer
 
 from . import skills
-from .servers import announcements, assignments, courses, modules, pages, submissions, system
+from .servers import (announcements, assignments, builders, courses, grading, modules, pages,
+                      quizzes, submissions, system)
 
 INSTRUCTIONS = """\
 Canvas authoring and grading for instructors.
@@ -20,8 +21,8 @@ tools to carry it out. Pages and assignments are always created unpublished; the
 publishes.
 """
 
-# Extend as `servers/` grows: quizzes and grading are still to come.
-_MODULES = (system, courses, pages, modules, assignments, announcements, submissions)
+_MODULES = (system, courses, pages, modules, assignments, quizzes, announcements, submissions,
+            builders, grading)
 
 
 def build_server() -> MCPServer:
