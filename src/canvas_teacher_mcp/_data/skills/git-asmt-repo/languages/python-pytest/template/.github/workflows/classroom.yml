@@ -1,0 +1,100 @@
+name: GitHub Classroom Workflow
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  repository_dispatch:
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Install pytest once for the next graders
+      - name: Install pytest
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pytest
+
+      # ---- Grader 11: compile tests ----
+      - name: Compile tests
+        id: compile
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "Compile tests"
+          command: python3 -m py_compile main.py 
+          timeout: 30
+          max-score: 10
+
+      # ---- Grader 12: run tests ----
+      - name: Run tests
+        id: run
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "Run tests"
+          command: |
+            timeout 5s python3 main.py < data/data.txt > /dev/null
+          timeout: 30
+          max-score: 10
+
+      # ---- Grader 2: pytest -m T1(20 pts) ----
+      - name: T1 tests
+        id: T1
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "T1 tests"
+          command: pytest -rP -m T1
+          timeout: 10
+          max-score: 20
+
+      # ---- Grader 3: pytest -m T2 (20 pts) ----
+      - name: T2 tests
+        id: T2
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "T2 tests"
+          command: pytest -rP -m T2
+          timeout: 10
+          max-score: 20
+
+      # ---- Grader 4: pytest -m T3 (20 pts) ----
+      - name: T3 tests 
+        id: T3
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "T3 tests"
+          command: pytest -rP -m T3
+          timeout: 10
+          max-score: 20
+
+      # ---- Grader 5: pytest -m T4 (20 pts) ----
+      - name: T4 tests 
+        id: T4
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "T4 tests"
+          command: pytest -rP -m T4
+          timeout: 10
+          max-score: 20
+
+      # ---- Reporter: show score on Classroom ----
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        env:
+          COMPILE_RESULTS: "${{ steps.compile.outputs.result }}"
+          RUN_RESULTS: "${{ steps.run.outputs.result }}"
+          T1_RESULTS: "${{ steps.T1.outputs.result }}"
+          T2_RESULTS: "${{ steps.T2.outputs.result }}"
+          T3_RESULTS: "${{ steps.T3.outputs.result }}"
+          T4_RESULTS: "${{ steps.T4.outputs.result }}"
+        with:
+          runners: compile,run,T1,T2,T3,T4

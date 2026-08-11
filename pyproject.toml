@@ -1,0 +1,21 @@
+[project]
+name = "canvas-teacher-mcp"
+version = "0.1.0"
+description = "Canvas LMS for instructors over MCP — build pages and quizzes, and grade"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "mcp>=2.0",
+    "playwright>=1.40",
+]
+
+[project.scripts]
+canvas-teacher-mcp = "canvas_teacher_mcp.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/canvas_teacher_mcp"]

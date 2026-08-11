@@ -1,0 +1,107 @@
+name: GitHub Classroom Workflow
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  repository_dispatch:
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+# JUnit grading model (Java port of the <course> autograding format):
+#   compile + run + 4 tag groups (T1..T4), each group = many @Test items sharing a @Tag.
+#   The JUnit console launcher exits non-zero if any test in the selected tag fails,
+#   so autograding-command-grader (exit-0 = pass) scores each group as a unit.
+#   Add test items by adding @Test methods with the matching @Tag — no yml change needed.
+env:
+  JUNIT: lib/junit-platform-console-standalone-1.10.2.jar
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # ---- Compile (10) ----
+      - name: Compile
+        id: compile
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "Compile"
+          command: javac -cp lib/junit-platform-console-standalone-1.10.2.jar -d out src/*.java test/*.java
+          timeout: 30
+          max-score: 10
+
+      # ---- Run (10) ----
+      - name: Run
+        id: run
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "Run"
+          command: java -cp out Main < data/input.txt
+          timeout: 30
+          max-score: 10
+
+      # ---- Group T1 (20) — e.g. Input/Output tests (multiple @Test, @Tag("T1")) ----
+      - name: T1 tests
+        id: T1
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "T1 tests"
+          command: java -jar lib/junit-platform-console-standalone-1.10.2.jar execute -cp out --include-tag T1 --scan-class-path --fail-if-no-tests
+          timeout: 30
+          max-score: 20
+
+      # ---- Group T2 (20) ----
+      - name: T2 tests
+        id: T2
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "T2 tests"
+          command: java -jar lib/junit-platform-console-standalone-1.10.2.jar execute -cp out --include-tag T2 --scan-class-path --fail-if-no-tests
+          timeout: 30
+          max-score: 20
+
+      # ---- Group T3 (20) ----
+      - name: T3 tests
+        id: T3
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "T3 tests"
+          command: java -jar lib/junit-platform-console-standalone-1.10.2.jar execute -cp out --include-tag T3 --scan-class-path --fail-if-no-tests
+          timeout: 30
+          max-score: 20
+
+      # ---- Group T4 (20) — e.g. Sorting-algorithm tests (multiple @Test, @Tag("T4")) ----
+      - name: T4 tests
+        id: T4
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "T4 tests"
+          command: java -jar lib/junit-platform-console-standalone-1.10.2.jar execute -cp out --include-tag T4 --scan-class-path --fail-if-no-tests
+          timeout: 30
+          max-score: 20
+
+      # ---- Reporter: aggregate score on Classroom ----
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        env:
+          COMPILE_RESULTS: "${{ steps.compile.outputs.result }}"
+          RUN_RESULTS: "${{ steps.run.outputs.result }}"
+          T1_RESULTS: "${{ steps.T1.outputs.result }}"
+          T2_RESULTS: "${{ steps.T2.outputs.result }}"
+          T3_RESULTS: "${{ steps.T3.outputs.result }}"
+          T4_RESULTS: "${{ steps.T4.outputs.result }}"
+        with:
+          runners: compile,run,T1,T2,T3,T4

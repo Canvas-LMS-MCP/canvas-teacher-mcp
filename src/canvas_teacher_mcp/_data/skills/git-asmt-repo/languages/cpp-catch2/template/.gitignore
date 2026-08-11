@@ -1,0 +1,10 @@
+*.dSYM
+.vscode
+a.out
+a.exe
+main
+programtest
+.DS_Store
+*.log
+__pycache__
+.pytest_cache

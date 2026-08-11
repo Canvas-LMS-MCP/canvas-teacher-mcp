@@ -1,0 +1,95 @@
+name: GitHub Classroom Workflow
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  repository_dispatch:
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1) Compile tests.cpp (compile check) 10 pts
+      - name: Compile tests.cpp (compile check)
+        id: compile_tests
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "Compile tests.cpp (compile check)"
+          setup-command: make clean
+          command: g++ -std=c++17 -Wall -Wextra main.cpp -o main && timeout 10 ./main 
+          timeout: 30
+          max-score: 10
+      # 2) Compile the test harness (tests.cpp must build against the student's code) 10 pts
+      - name: Compile tests.cpp (harness builds)
+        id: compile_harness
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "Compile tests.cpp (harness builds)"
+          setup-command: make clean
+          command: g++ -std=c++17 -Wall -Wextra -c tests.cpp -o /tmp/tests.o
+          timeout: 30
+          max-score: 10
+
+      # 2) T1
+      - name: Basic test [T1]
+        id: t1
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "Basic test [T1]"
+          setup-command: make clean
+          command: make test ARGS="[T1]"
+          timeout: 30
+          max-score: 20
+
+      # 3) T2
+      - name: T2 test
+        id: t2
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "T2 test"
+          command: make test ARGS="[T2]"
+          timeout: 30
+          max-score: 20
+
+      # 4) T3
+      - name: T3 test
+        id: t3
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "T3 test"
+          command: make test ARGS="[T3]"
+          timeout: 30
+          max-score: 20
+
+      # 5) T4
+      - name: T4 test
+        id: t4
+        uses: classroom-resources/autograding-command-grader@v1
+        with:
+          test-name: "T4 test"
+          command: make test ARGS="[T4]"
+          timeout: 30
+          max-score: 20
+
+      # Reporter
+      - name: Autograding Reporter
+        uses: classroom-resources/autograding-grading-reporter@v1
+        env:
+          COMPILE_TESTS_RESULTS: "${{ steps.compile_tests.outputs.result }}"
+          COMPILE_HARNESS_RESULTS: "${{ steps.compile_harness.outputs.result }}"
+          T1_RESULTS: "${{ steps.t1.outputs.result }}"
+          T2_RESULTS: "${{ steps.t2.outputs.result }}"
+          T3_RESULTS: "${{ steps.t3.outputs.result }}"
+          T4_RESULTS: "${{ steps.t4.outputs.result }}"
+        with:
+          runners: compile_tests,compile_harness,t1,t2,t3,t4
