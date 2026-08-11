@@ -1,20 +1,23 @@
-"""Grading tools — Stage A only. Nothing here posts a grade.
+"""Grading tools.
 
-Grading stops at save and report; posting is a separate step the instructor authorises, and on a
-client with no hooks there is nothing to enforce that. So `post_grades` is deliberately NOT a
-tool: a run ends with a report to read, and the instructor posts from a terminal.
+Read the `grade` skill before calling any of this — the ORDER is the subject of that document,
+and these tools are only its steps.
 
-Read the `grade` skill before calling any of this — the order is the subject of that document,
-and these tools are only its Stage A half.
+Posting is its own step, never the tail of grading: a run ends at save and report, the instructor
+reads it, and only then is a post asked for. `post_grades` defaults to a dry run and refuses a
+Stage-A file outright; its view-gate blocks a post whose surfaced evidence was never read.
 """
 
 from __future__ import annotations
+
+import contextlib
+import io
 
 from ..grading import core
 
 # `grade` is the SKILL's name — the methodology document. The tool that runs the engine is named
 # apart from it, so a client sees both: the procedure to follow, and the step that executes it.
-TOOLS = ("read_assignment_instructions", "propose_rubric", "run_stage_a")
+TOOLS = ("read_assignment_instructions", "propose_rubric", "run_stage_a", "post_grades")
 
 
 def read_assignment_instructions(course: str, code: str) -> dict:
@@ -44,6 +47,32 @@ def run_stage_a(course: str, code: str, rubric: dict | None = None) -> dict:
     return core.grade(course, code, rubric=rubric)
 
 
+def post_grades(grades_json: str, dry_run: bool = True, fix: bool = False) -> str:
+    """Write the rendered grades and comments to Canvas. Its own step, asked for on its own.
+
+    `grades_json` is the POST-READY file the report render produced — a Stage-A file is refused.
+    The default is a dry run that reports what would be written; pass `dry_run=false` to write.
+    `fix` is for correcting an earlier mis-grade: it is the only mode that deletes a comment, and
+    only the one this poster recorded for the current attempt.
+
+    A post aborts when any evidence the engine surfaced was never read.
+    """
+    from .. import post_grades as poster
+
+    argv = [grades_json]
+    if not dry_run:
+        argv.append("--post")
+    if fix:
+        argv.append("--fix")
+
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        code = poster.main(argv)
+    report = (out.getvalue() + err.getvalue()).strip()
+    header = "DRY RUN — nothing was written.\n" if dry_run else ""
+    return f"{header}exit {code}\n{report}"
+
+
 def register(server) -> None:
-    for fn in (read_assignment_instructions, propose_rubric, run_stage_a):
+    for fn in (read_assignment_instructions, propose_rubric, run_stage_a, post_grades):
         server.add_tool(fn)
