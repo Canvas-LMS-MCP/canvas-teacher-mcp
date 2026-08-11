@@ -14,7 +14,7 @@ are fixed here so every week looks the same.
 
 Usage:
     from gen_agenda import build_and_place
-    build_and_place("comsc240", module_id, week="Week 4",
+    build_and_place("<course>", module_id, week="Week 4",
                     intro="Week 4 — Midterm 2 (Chapter 5. Functions)",
                     topic_bullets=[...], review_note="...", closing="...",
                     learned=[...])   # learned -> wrap-up "you learned" bullets

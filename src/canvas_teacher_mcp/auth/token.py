@@ -57,7 +57,7 @@ _GENERIC_HOST_LABELS = {"canvas", "www", "lms", "elearning"}
 def school_slug(canvas_url):
     """The file label for a Canvas URL — the first domain segment.
 
-    `https://4cd.instructure.com` -> `4cd`. The label is for humans only: `get_token` matches
+    `https://<school>.instructure.com` -> `<school>`. The label is for humans only: `get_token` matches
     on the `base_url` INSIDE the file, so renaming the file changes nothing.
     """
     host = urlparse(canvas_url if "//" in canvas_url else "https://" + canvas_url).netloc

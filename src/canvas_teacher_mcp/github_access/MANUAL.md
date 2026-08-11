@@ -4,7 +4,7 @@ The GitHub REST layer — the GitHub-side mirror of `canvas_rest`. Every functio
 `(token, repo, …)`. Nothing here logs in: the token comes from `github_auth.get_token()`
 and is passed in.
 
-`repo` is always the full `"{org}/{name}"` string (e.g. `"<org>/<course>-su26-A61-jdoe"`).
+`repo` is always the full `"{org}/{name}"` string (e.g. `"<org>/<course>-<term>-A61-<student-login>"`).
 
 Policy is not restated here. Autograder / run-log mechanics:
 `CourseGlobalWorkflow/Access/GitHub.md`. Student-repo provisioning + naming:
@@ -59,9 +59,9 @@ from github_auth import get_token
 from github_access import list_runs, list_commits, get_commit, get_run_log
 
 tok  = get_token()
-runs = list_runs(tok, "<org>/<course>-su26-A61-jdoe")
+runs = list_runs(tok, "<org>/<course>-<term>-A61-<student-login>")
 sha  = runs[0]["head_sha"]
-diff = get_commit(tok, "<org>/<course>-su26-A61-jdoe", sha)   # ["files"] = the patch
+diff = get_commit(tok, "<org>/<course>-<term>-A61-<student-login>", sha)   # ["files"] = the patch
 ```
 
 ## Rules

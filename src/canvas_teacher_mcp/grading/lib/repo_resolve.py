@@ -40,7 +40,7 @@ def extract_repo_from_body(text, github_org):
 
 def _name_key(name):
     """Order/format-insensitive key for a person name: the set of alpha words,
-    lower-cased. 'Castro, Eliza' == 'Eliza Castro' == 'eliza  castro'."""
+    lower-cased. 'Last, First' == 'First Last' == 'first  last'."""
     return frozenset(re.findall(r"[a-z]+", (name or "").lower()))
 
 

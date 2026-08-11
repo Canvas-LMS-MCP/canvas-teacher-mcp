@@ -118,7 +118,7 @@ _PDF_RASTER_MAX_PAGES = 12           # a drawing PDF is ~1p; cap runaway multi-p
 
 def _rasterize_pdf(pdf_path, out_dir):
     """A PDF that is a scanned/photo drawing must be VIEWED (§0Z). Read opens PDFs
-    natively, but ONLY up to 20MB — phone-photo PDFs (Nathan: ~70MB) blow past that.
+    natively, but ONLY up to 20MB — phone-photo PDFs (~70MB) blow past that.
     So rasterize each page to a downscaled PNG (pdftoppm) the AI can view. Returns the
     list of PNG paths (empty if pdftoppm is missing or fails — caller keeps the raw
     path as a fallback). NO information loss vs the drawing: it is already a raster."""
@@ -329,7 +329,7 @@ def _grade_attempt(answers_data, questions, ctx, as_of=None, attempt=None):
         # ── 1+2: extract attachments + read the student's text ──
         # attempt# in the dir name ISOLATES each attempt's downloads — without it,
         # attempt 1 and attempt 2 of the same question shared one folder and their
-        # images cross-contaminated (Eliza: att1 showed att2's screenshots). Each
+        # images cross-contaminated (one attempt showed another attempt's screenshots). Each
         # attempt is a separate quiz, so its files get a separate directory.
         essay_dir = os.path.join(download_dir, f"{uid}_a{attempt}_q{qid}_essay")
         raw_answer_html = ans_html_by_id.get(qid, "")
@@ -343,7 +343,7 @@ def _grade_attempt(answers_data, questions, ctx, as_of=None, attempt=None):
             raw_answer_html)
         # file_upload answers carry the file ONLY in attachment_ids (text null);
         # resolve each id → public_url (auth-free, token-bearing) so the shared
-        # reader can fetch it. Fall back to /files/{id}/download (401s on <school> →
+        # reader can fetch it. Fall back to /files/{id}/download (401s on some schools →
         # reads empty → flagged) when public_url can't be fetched.
         _cm, _cb, _ct = ctx.get("canvas_module"), ctx.get("canvas_base"), ctx.get("canvas_token")
         _file_atts = []
@@ -385,7 +385,7 @@ def _grade_attempt(answers_data, questions, ctx, as_of=None, attempt=None):
         # extension → detect by magic bytes; skip the manifest_*.json sidecar.
         #   answer_images = PNG/JPG/GIF (Read views inline)
         #   answer_docs   = PDF/other docs (Read opens PDFs page-by-page). A drawing
-        #     submitted as a PDF (Nathan) was previously downloaded but NEVER surfaced
+        #     submitted as a PDF was previously downloaded but NEVER surfaced
         #     because only image magic bytes were accepted → §0Z "view every drawing"
         #     silently violated. Surface the path so Stage B opens it (NO rasterize).
         answer_images = []
@@ -407,7 +407,7 @@ def _grade_attempt(answers_data, questions, ctx, as_of=None, attempt=None):
         # EVERY PDF answer is a drawing/scan that must be VIEWED (§0Z). Uniformly
         # rasterize its pages to downscaled PNGs and add them to answer_images so the
         # drawing ALWAYS lands where Stage B looks (no separate docs list to overlook,
-        # no 20MB Read cap to trip on — Nathan's ~70MB phone PDF). The original PDF path
+        # no 20MB Read cap to trip on — a ~70MB phone PDF). The original PDF path
         # stays in answer_docs and the PDF's extracted text is in answer_attachment_text,
         # so rasterizing loses nothing. Overhead is ~1s/page — negligible.
         for _pdf in answer_docs:

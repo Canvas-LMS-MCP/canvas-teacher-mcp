@@ -102,7 +102,7 @@ def make_page(course_slug, slug, overview_html, sections, *,
               deck_id=None, stylesheet=None, push=False, backup_dir=None, token=None):
     """Build (and optionally PUT) a course's module overview page.
 
-    course_slug   : course_config slug, e.g. 'cs120' (coords come from there).
+    course_slug   : course_config slug, e.g. '<course>' (coords come from there).
     slug          : Canvas page url slug (e.g. 'git-and-github-systems').
     overview_html : AUTHORED — 1-2 <p> paragraphs (NO <code>).
     sections      : AUTHORED — [(header, summary_html|None, items, section_deck_id|None)].
