@@ -68,7 +68,7 @@ flowchart pages could not render backticks AT ALL — the renderer was locked in
 | Local config | course id, token, org, pages_folder, output_dir, dispatch | **`course_config.load(<course>)`** (single source) |
 
 ## Builder contract (what a builder passes to the skeleton)
-The git/program builder is the GLOBAL `git_page.py` (config-driven — reads `comsc240.json`). The contract
+The git/program builder is the GLOBAL `git_page.py` (config-driven — reads `<course>.json`). The contract
 below is what ANY builder (git_page, or a not-yet-migrated per-course plugin) hands `skel.make_page`:
 - `doc_blocks` — gws-richdoc blocks for the detailed instruction doc (or None → gdoc-less, summary-only page).
 - `canvas_summary_html` — the Canvas page's summary sections (built with the skeleton's rich helpers:
@@ -88,7 +88,7 @@ assignment's doc. Its name is how the instructor finds it there, so:
   existing shape before creating. A doc that breaks the pattern is a defect: it sorts wrong and reads
   as someone else's file. The exact shape is a course fact and lives in the **L3 course wrapper**.
 - **The builder assembles the name from `asmt`** (code + title); a caller should not be able to type
-  a different one. *(Real failure 2026-08-01: a CS120 doc was created as `A1102 - Structure Student
+  a different one. *(Real failure 2026-08-01: a <course> doc was created as `A1102 - Structure Student
   Array` while all eleven of its neighbours were `[Assignment A711] …` — the rule existed nowhere, so
   the name was invented.)*
 
@@ -170,7 +170,7 @@ Reuse the assignment's existing embed URL(s) unchanged — never re-pick the `sl
 `git_page` places the slide embed(s) at the **TOP** of the Canvas summary (right under title + gist) for
 intuition-first, NOT appended last. Order in the list = order shown.
 
-## git_page asmt fields — special renderings (COMSC240-proven)
+## git_page asmt fields — special renderings (<course>-proven)
 - `restrictions: [str,…]` → a **yellow bold** highlight box (forbidden functions must stand out).
 - `elaboration: [str,…]` → a **navy emphasis box** listing exactly what the student must write (the
   elaboration is graded; spell it out — algorithm detail, map/zip usage, correctness for all inputs,

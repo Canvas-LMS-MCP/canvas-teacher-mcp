@@ -12,8 +12,8 @@ derived from the **same module read**, but this one **sends email to every stude
 own skill and is invoked deliberately — never automatically bundled with the pages.
 
 > **Course coordinates are NEVER hardcoded.** Read them from `course_config.load(<course_slug>)`:
-> `course_id`, `school`, `canvas_base_url`, `canvas_token_env`. e.g. `csci19a` → school `lpc`, course
-> `58774`, token `LPC_CANVAS_TOKEN`; `cs110` → school `avc`, course `69095`. The user names the
+> `course_id`, `school`, `canvas_base_url`, `canvas_token_env`. e.g. `<course>` → school `<school>`, course
+> `58774`, token `<SCHOOL>_CANVAS_TOKEN`; `<course>` → school `<school>`, course `69095`. The user names the
 > `course_slug` (or you infer it from the working directory); everything else comes from the config.
 
 ## Step 1 — read the module ONCE (via `canvas_rest`)

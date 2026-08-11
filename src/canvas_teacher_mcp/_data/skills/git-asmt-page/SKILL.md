@@ -36,7 +36,7 @@ Every git-assignment page, built from the `asmt` dict:
   it from `request_id`=CODE; requires the CODE registered by `git-asmt-repo` first).
   ⛔ **ONE VALUE, FOUR PLACES.** `request_id` = `code` = the assignment slot in the student repo
   name = the org-hub `config.json` key:
-  `csci19a-su26-`**`A612`**`-akshat0714` · `CSCI19`**`A612`**`Starter` · key `"A612"`.
+  `<course>-<term>-`**`A612`**`-<student-login>` · `<COURSE>`**`A612`**`Starter` · key `"A612"`.
   `request_id` exists only for the ~1% assignment whose request key genuinely differs — passing a
   different value is a DECLARATION, not a default, and `git_page` now STOPS on a silent
   divergence. Why: on 2026-08-04 all 14 CSCI-19A chapter-5 pages shipped `assignment=5-6`-style

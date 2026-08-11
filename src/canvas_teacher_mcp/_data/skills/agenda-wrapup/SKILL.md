@@ -11,7 +11,7 @@ Two Canvas **PAGES** per week/module, both derived from the **same module data**
 - **Wrap-up** (week end): the same to-dos as a checklist + what you learned + confirm you finished.
 
 The Wrap-up is the Agenda's to-do list, condensed and recast — so generate both from one module read.
-Reference origin: COMSC140 `.claude/code/gen_agenda.py` + `workflows/45weekagenda.md` (DVC; that was a
+Reference origin: <course> `.claude/code/gen_agenda.py` + `workflows/45weekagenda.md` (<school>; that was a
 per-course `requests` script — this uses the central `canvas_rest` instead).
 
 ## Shared core — read the module ONCE
@@ -104,6 +104,6 @@ passed in; everything mechanical is fixed in code. NEVER hand-build the HTML inl
 `gen_agenda.build_and_place(course_slug, module_id, …)` resolves them; nothing is hardcoded. Links are relative.
 
 ## Reference
-- COMSC140 `gen_agenda.py` + `45weekagenda.md` — origin (categorization + `to_localtime` idea).
+- <course> `gen_agenda.py` + `45weekagenda.md` — origin (categorization + `to_localtime` idea).
 - Canvas style policy (no emoji, code font, API upload, `published:false`) — `CourseGlobalWorkflow/Access/Canvas.md`.
 - Per-course config = `course_config.load(<course>)`; term links (per course) = that course's `input/course-info.md`.

@@ -61,7 +61,7 @@ Part C §2), `sections` (the pin-per-section expectation, §3), and **`expected_
 time-plausibility threshold, §4b.1). So the FIRST thing once NB is confirmed:
 1. **Manifest exists?** (`grade_engine/manifests/<code>.json`) → use it, continue.
 2. **Missing?** → BUILD it canonically, BEFORE Stage A (never hand-count):
-   - a. Find the template from the assignment instructions (a GitHub/Colab link, e.g. `DVC-COMSC/PythonCH04/ch04.ipynb`).
+   - a. Find the template from the assignment instructions (a GitHub/Colab link, e.g. `<org>/PythonCH04/ch04.ipynb`).
    - b. Fetch to a local file: `gh api repos/<org>/<repo>/contents/ch0N.ipynb --jq .content | base64 -d > /tmp/chNN.ipynb`.
    - c. `python3 -m grade_engine.lib.nb_inspect --build-manifest /tmp/chNN.ipynb <code> --note "..."`.
    - d. **CONFIRM with the instructor**: show `exec_cells` + `sections`. The 'section' count can be off (sub-problems vs top-level — e.g. ch04's 38 `Problem X.Y` → **8** top-level sections). Only proceed once the numbers are right.

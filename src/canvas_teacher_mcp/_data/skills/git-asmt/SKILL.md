@@ -71,6 +71,6 @@ you want the whole thing.
 
 ## References
 - Children: `git-asmt-repo/SKILL.md`, `git-asmt-page/SKILL.md`.
-- L3 wrappers: each course's `…-git-repo` (e.g. CS120 `cs120-git-repo`).
+- L3 wrappers: each course's `…-git-repo` (e.g. <course> `<course>-git-repo`).
 - Policy: `CourseGlobalWorkflow/GRADING.md`, `Access/GitHub.md`, `Access/GitHub.md`.
 - Plan/history: `working_logs/jul-24-2026.md`.
