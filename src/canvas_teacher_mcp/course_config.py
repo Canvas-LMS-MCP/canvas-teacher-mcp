@@ -116,6 +116,67 @@ def slugs():
     return sorted(_index())
 
 
+def _fetch_course(base_url, domain, course_id):
+    """The course's own name and code, read from Canvas. Credentials resolve by domain."""
+    from .auth.token import get_token, whoami  # noqa: PLC0415 — keep this module importable
+    import urllib.request                      #   without credentials
+
+    token = get_token("%s_CANVAS_TOKEN" % domain.split(".")[0].upper(), base_url=base_url)
+    whoami(base_url, token)                    # fail early, with a clear reason
+    req = urllib.request.Request("%s/courses/%s" % (base_url, course_id),
+                                 headers={"Authorization": "Bearer %s" % token})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read())
+
+
+def register_course(course_url, *, slug=None, course_dir=None, school=None, course_code=None):
+    """Write a course's config from its Canvas URL. See `Where/CourseConfig.md`.
+
+    Everything is PROPOSED and overridable, because only the instructor knows the tree's shape:
+      slug        <- the course code, lowercased
+      course_dir  <- <ROOT>/<COURSE_CODE>
+      school      <- the domain's first label; one domain can serve several colleges, so this
+                     is a guess the instructor confirms
+    An existing config is never overwritten.
+
+    Returns {"status": "registered" | "already_registered", "path", "slug", "course_dir",
+             "school", "course_code", "name"}.
+    """
+    domain = _domain_of(course_url)
+    course_id = _course_id_of(course_url)
+    if not domain or not course_id:
+        raise ValueError("not a Canvas course URL: %r (want https://<domain>/courses/<id>)"
+                         % course_url)
+    base_url = "https://%s/api/v1" % domain
+
+    if not course_code:
+        info = _fetch_course(base_url, domain, course_id)
+        course_code = info.get("course_code") or info.get("name") or str(course_id)
+        name = info.get("name")
+    else:
+        name = course_code
+
+    slug = (slug or re.sub(r"[^a-z0-9]", "", course_code.lower()) or str(course_id))
+    school = school or domain.split(".")[0]
+    course_dir = course_dir or os.path.join(str(root()), re.sub(r"[^A-Za-z0-9._-]", "-",
+                                                                course_code))
+    if not os.path.isabs(course_dir):
+        course_dir = os.path.join(str(root()), course_dir)
+
+    path = os.path.join(course_dir, ".claude", "course-config", "%s.json" % slug)
+    if os.path.exists(path):
+        return {"status": "already_registered", "path": path, "slug": slug,
+                "course_dir": course_dir, "school": school, "course_code": course_code,
+                "name": name}
+
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        json.dump({"canvas_url": course_url, "school": school}, f, indent=2)
+        f.write("\n")
+    return {"status": "registered", "path": path, "slug": slug, "course_dir": course_dir,
+            "school": school, "course_code": course_code, "name": name}
+
+
 def load(course):
     """Normalized config dict for a course. `course` = a slug OR a Canvas course_id.
     Raises KeyError with the known slugs on no match — never a silent default."""

@@ -45,13 +45,16 @@ def get_doc(path: str) -> str:
     return target.read_text(encoding="utf-8")
 
 
-def setup(canvas_url: str | None = None, token: str | None = None) -> str:
+def setup(canvas_url: str | None = None, token: str | None = None,
+          course_url: str | None = None, slug: str | None = None,
+          course_dir: str | None = None) -> str:
     """Set this install up, one step per call. Relay the answer to the instructor.
 
-    Call with no arguments to see where things stand. Pass `canvas_url` to register a school —
-    that writes the config with an empty token and reports the file to paste one into. Pass
-    `token` as well only if the instructor prefers that; the token then goes through this
-    conversation and stays in its record.
+    Call with no arguments to see where things stand. Pass `canvas_url` to register a SCHOOL —
+    that writes the config with an empty token and reports the file to paste one into; pass
+    `token` as well only if the instructor prefers that, since the token then stays in this
+    conversation's record. Pass `course_url` to register a COURSE, optionally overriding the
+    proposed `slug` and `course_dir`.
     """
     from ..auth import token as token_auth
 
@@ -67,6 +70,9 @@ def setup(canvas_url: str | None = None, token: str | None = None) -> str:
 
     if canvas_url:
         return _register(token_auth, canvas_url, token)
+
+    if course_url:
+        return _register_course(course_url, slug, course_dir)
 
     lines = [f"course root: {tree}"]
     for label, path in (
@@ -107,6 +113,36 @@ def setup(canvas_url: str | None = None, token: str | None = None) -> str:
         "so an edit there is lost, while an edit in the course root survives.",
     ]
     return "\n".join(lines)
+
+
+def _register_course(course_url: str, slug: str | None, course_dir: str | None) -> str:
+    """One course, from its Canvas URL. Everything else is proposed and overridable."""
+    from .. import course_config
+
+    try:
+        result = course_config.register_course(course_url, slug=slug, course_dir=course_dir)
+    except Exception as exc:  # noqa: BLE001 — the reason is the answer
+        return (
+            f"Could not register {course_url}: {exc}\n"
+            "If the school is not registered yet, do that first: call setup with canvas_url set "
+            "to the Canvas address."
+        )
+
+    if result["status"] == "already_registered":
+        return (
+            f"{result['slug']} is already registered at {result['path']}.\n"
+            "Nothing was changed."
+        )
+
+    return (
+        f"Registered {result.get('name') or result['course_code']} as slug "
+        f"'{result['slug']}'.\n"
+        f"Config: {result['path']}\n"
+        f"School: {result['school']} (guessed from the domain — say so if it is wrong)\n\n"
+        f"Tools now take course='{result['slug']}'. To use a different folder or slug, call "
+        "setup again with course_dir or slug set; nothing is overwritten, so move or delete the "
+        "old config first."
+    )
 
 
 def _register(token_auth, canvas_url: str, token: str | None) -> str:
