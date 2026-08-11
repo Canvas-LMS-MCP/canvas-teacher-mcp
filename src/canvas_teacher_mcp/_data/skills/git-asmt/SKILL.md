@@ -1,6 +1,7 @@
 ---
 name: git-asmt
 description: "GLOBAL L1 ENTRY POINT (dispatcher) for creating a GitHub coding assignment end-to-end. Routes to two children: git-asmt-repo (build the solution/tests + prove 100/100 + ship the Starter + register in the org-hub) and git-asmt-page (build the Canvas assignment page via git_page). Language-agnostic; the language mechanics are L2 (git-asmt-repo/languages/*) and the course coordinates are the L3 course wrapper (config). Use when the user says 'make/build/create assignment <CODE>' — this decides repo-first then page."
+tools: [build_starter_repo, build_coding_assignment_page]
 ---
 
 # git-asmt — L1 dispatcher (entry point)
@@ -70,6 +71,6 @@ you want the whole thing.
 
 ## References
 - Children: `git-asmt-repo/SKILL.md`, `git-asmt-page/SKILL.md`.
-- L3 wrappers: each course's `…-git-repo` (e.g. <course> `<course>-git-repo`).
+- L3 wrappers: each course's `…-git-repo` (e.g. CS120 `cs120-git-repo`).
 - Policy: `CourseGlobalWorkflow/GRADING.md`, `Access/GitHub.md`, `Access/GitHub.md`.
 - Plan/history: `working_logs/jul-24-2026.md`.

@@ -1,6 +1,7 @@
 ---
 name: quiz-builder
 description: "GLOBAL methodology for building/updating a Canvas CLASSIC quiz — its question items + the description summary. Create a quiz from nothing OR modify an existing one. Dispatches question items by type (native MCQ/T-F/essay/fill-in via the Quizzes API; a git-program question defers to the course-local git-homework). All Canvas quiz API calls go through the co-located quiz_builder.py — never hand-rolled. Use when making/updating any Canvas quiz's questions or details."
+tools: [create_quiz, update_quiz, get_quiz, list_quiz_questions, add_quiz_questions, finalize_quiz]
 ---
 
 # quiz-builder — GLOBAL quiz-building methodology

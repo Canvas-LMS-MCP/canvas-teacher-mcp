@@ -1,6 +1,7 @@
 ---
 name: assignment-page-builder
-description: "GLOBAL methodology for building a Canvas ASSIGNMENT/LAB page from the universal skeleton `canvas_core/assignment_page_builder.py`. The skeleton is the CODE (machinery); this skill is the HOW (authoring method + finalize order). Per-course skills (e.g. <course> customize-assignment-page = git plugin, jshell-lab = jshell plugin) supply the course config + content and reuse this. Policy (grading %, published, dates) lives in CourseGlobalWorkflow and is only REFERENCED here. Use when building/updating any Canvas assignment or lab page."
+description: "GLOBAL methodology for building a Canvas ASSIGNMENT/LAB page from the universal skeleton `canvas_core/assignment_page_builder.py`. The skeleton is the CODE (machinery); this skill is the HOW (authoring method + finalize order). Per-course skills (e.g. CSCI-19A customize-assignment-page = git plugin, jshell-lab = jshell plugin) supply the course config + content and reuse this. Policy (grading %, published, dates) lives in CourseGlobalWorkflow and is only REFERENCED here. Use when building/updating any Canvas assignment or lab page."
+tools: [build_coding_assignment_page, build_notebook_assignment_page, get_assignment, create_assignment, update_assignment]
 ---
 
 # assignment-page-builder — GLOBAL page-building methodology
@@ -16,7 +17,7 @@ The pairing of:
 - **BUILDERS (content):** turn an `asmt` dict into `doc_blocks` + `canvas_summary_html` and call
   `skel.make_page(...)`. **git / program → `git_page.py`** · **NB / notebook → `nb_page.py`** (both GLOBAL +
   config-driven — read `course_config.load(<course>)`, NO per-course code). Per-course plugins remain
-  only for not-yet-migrated types: <course> `jshell_lab.py` (JShell lab — no global equivalent exists).
+  only for not-yet-migrated types: CSCI-19A `jshell_lab.py` (JShell lab — no global equivalent exists).
   The git/Java plugin `gh_assignment.py` was **absorbed into `git_page.py` and deleted 2026-07-31**;
   its seven course-locked features (`signature`, `what_to_complete`, `io_block`/`io_lines`/`io_table`,
   `input_spec`, `concept`, `guide_steps`, 3-level `RUBRIC_LEVELS`) are global now.
@@ -67,7 +68,7 @@ flowchart pages could not render backticks AT ALL — the renderer was locked in
 | Local config | course id, token, org, pages_folder, output_dir, dispatch | **`course_config.load(<course>)`** (single source) |
 
 ## Builder contract (what a builder passes to the skeleton)
-The git/program builder is the GLOBAL `git_page.py` (config-driven — reads `<course>.json`). The contract
+The git/program builder is the GLOBAL `git_page.py` (config-driven — reads `comsc240.json`). The contract
 below is what ANY builder (git_page, or a not-yet-migrated per-course plugin) hands `skel.make_page`:
 - `doc_blocks` — gws-richdoc blocks for the detailed instruction doc (or None → gdoc-less, summary-only page).
 - `canvas_summary_html` — the Canvas page's summary sections (built with the skeleton's rich helpers:
@@ -87,7 +88,7 @@ assignment's doc. Its name is how the instructor finds it there, so:
   existing shape before creating. A doc that breaks the pattern is a defect: it sorts wrong and reads
   as someone else's file. The exact shape is a course fact and lives in the **L3 course wrapper**.
 - **The builder assembles the name from `asmt`** (code + title); a caller should not be able to type
-  a different one. *(Real failure 2026-08-01: a <course> doc was created as `A1102 - Structure Student
+  a different one. *(Real failure 2026-08-01: a CS120 doc was created as `A1102 - Structure Student
   Array` while all eleven of its neighbours were `[Assignment A711] …` — the rule existed nowhere, so
   the name was invented.)*
 
@@ -169,17 +170,17 @@ Reuse the assignment's existing embed URL(s) unchanged — never re-pick the `sl
 `git_page` places the slide embed(s) at the **TOP** of the Canvas summary (right under title + gist) for
 intuition-first, NOT appended last. Order in the list = order shown.
 
-## git_page asmt fields — special renderings (<course>-proven)
+## git_page asmt fields — special renderings (COMSC240-proven)
 - `restrictions: [str,…]` → a **yellow bold** highlight box (forbidden functions must stand out).
 - `elaboration: [str,…]` → a **navy emphasis box** listing exactly what the student must write (the
   elaboration is graded; spell it out — algorithm detail, map/zip usage, correctness for all inputs,
   errors/fixes). Use whenever elaboration carries real weight.
 
 ## Per-course plugins that use this skill
-- **<course> `customize-assignment-page`** (git program assignment) — an L3 POINTER now; the page is
+- **CSCI-19A `customize-assignment-page`** (git program assignment) — an L3 POINTER now; the page is
   built by the global `git_page.py` (the local plugin was absorbed 2026-07-31). Course config +
   git-specific content; pairs with `git-homework` (which owns the repo + tests, incl. multi-input / pytest-parser).
-- **<course> `jshell-lab`** (JShell lab) — `jshell_lab.py`. Lab content; grading in `GRADING.md Part E`.
+- **CSCI-19A `jshell-lab`** (JShell lab) — `jshell_lab.py`. Lab content; grading in `GRADING.md Part E`.
 
 ## Per-type instruction-doc format (pinned section templates)
 The generic authoring method above is shared, but the instruction doc's **pinned section order + names**

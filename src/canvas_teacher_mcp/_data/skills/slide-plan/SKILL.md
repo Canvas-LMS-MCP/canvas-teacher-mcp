@@ -1,6 +1,7 @@
 ---
 name: slide-plan
 description: "GLOBAL sub-skill of module-overview-page — turn a multi-slide module into one SECTION per slide: 'this slide covers X → do these assignments/labs based on it', with the slide deck embedded in that section. Returns section tuples that module-overview-page's make_page consumes. Use when a module has SEVERAL slide decks and you want each slide's content summarized next to the tasks derived from it. Triggers: 'slide plan', 'per-slide breakdown', 'slide N covers … do …'."
+tools: [plan_slide_sections]
 ---
 
 # slide-plan — per-slide section blocks (Skill 2)

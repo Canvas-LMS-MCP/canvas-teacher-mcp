@@ -1,6 +1,7 @@
 ---
 name: module-overview-page
 description: "GLOBAL, config-driven — build a module OVERVIEW page (the representative page at the top of a Canvas module): 📌 Overview (the plan) + an optional slide embed + FLEXIBLE SECTION BLOCKS grouping that module's items (readings/videos/quizzes/assignments) as a roadmap. Categories are DATA — add/remove freely per course, no fixed columns, no wrappers needed. Renderer = module_overview.py (coords from course_config.load(<course_slug>)). For per-slide breakdowns it uses the slide-plan skill. Triggers: 'module overview page', 'make the overview/representative page for module N', '대표 페이지'."
+tools: [build_module_overview, plan_slide_sections, list_modules, list_module_items]
 ---
 
 # module-overview-page — GLOBAL module overview page (Skill 1)

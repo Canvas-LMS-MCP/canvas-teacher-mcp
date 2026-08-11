@@ -1,6 +1,7 @@
 ---
 name: grade-git-program
 description: "Grading SUB-SKILL for git-program assignments AND git-program quiz questions (the M-series coding items) — the type-specific plug-in of the global `grade` skill, analogous to `grade-nb`. ONE skill for both: internally a quiz question is graded STRICTER (quiz-exam-policy) and a homework LOOSER. Runs THROUGH THE ENGINE (core.grade → graders/gh) + GRADING Part B; reads the build-time grading info left by git-homework / quiz-builder. STATUS: STUB — full setup at first grading."
+tools: [read_assignment_instructions, run_stage_a, list_autograder_runs, get_autograder_log, list_repo_commits]
 ---
 
 # grade-git-program — grade a git coding assignment / quiz question (SUB-SKILL of `grade`)

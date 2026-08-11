@@ -1,6 +1,7 @@
 ---
 name: git-asmt-page
 description: "GLOBAL L1 child of git-asmt — build the Canvas ASSIGNMENT PAGE for a git coding assignment via the global git_page (assignment-page-builder). Your job = fill the asmt dict well (gist, spec, I/O = function contract, examples call→output, restrictions, elaboration, test-items table, per-item points/rubric, per-item guide, function prototype+params) → git_page(course_slug, asmt). Language-agnostic; which fields to use (stdin-program vs function) comes from the L3 course wrapper's curriculum. Use to make/renew any git-assignment Canvas page. Canvas side ONLY — the repo is git-asmt-repo."
+tools: [build_coding_assignment_page, create_assignment, update_assignment]
 ---
 
 # git-asmt-page — Canvas page for a git assignment (L1 child)
@@ -35,10 +36,10 @@ Every git-assignment page, built from the `asmt` dict:
   it from `request_id`=CODE; requires the CODE registered by `git-asmt-repo` first).
   ⛔ **ONE VALUE, FOUR PLACES.** `request_id` = `code` = the assignment slot in the student repo
   name = the org-hub `config.json` key:
-  `<course>-<term>-`**`A612`**`-<student-login>` · `<COURSE>`**`A612`**`Starter` · key `"A612"`.
+  `csci19a-su26-`**`A612`**`-akshat0714` · `CSCI19`**`A612`**`Starter` · key `"A612"`.
   `request_id` exists only for the ~1% assignment whose request key genuinely differs — passing a
   different value is a DECLARATION, not a default, and `git_page` now STOPS on a silent
-  divergence. Why: on 2026-08-04 all 14 <course> chapter-5 pages shipped `assignment=5-6`-style
+  divergence. Why: on 2026-08-04 all 14 CSCI-19A chapter-5 pages shipped `assignment=5-6`-style
   TITLES while the register held `A56`, and nothing noticed for a whole chapter — the student
   request form is a dropdown generated from `config.json`, so students picked the right entry and
   the broken pre-fill stayed invisible.

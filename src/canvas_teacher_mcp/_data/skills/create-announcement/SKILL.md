@@ -1,6 +1,7 @@
 ---
 name: create-announcement
 description: "GLOBAL, config-driven — generate a weekly Canvas announcement from a module's contents for ANY course. Use when the user says make/write the weekly announcement, week N announcement, or announce this week. Reads the module, summarizes what to read/watch/do/submit, lists graded items with due dates, and closes warmly. Course coordinates come from course_config.load(<course_slug>) (course_id, school, token) — nothing hardcoded. PREVIEW-first; sends emails only on the instructor's explicit go. Invoke with the course_slug + week or module id."
+tools: [preview_announcement, send_announcement, list_modules, list_module_items]
 ---
 
 # Weekly Canvas Announcement (GLOBAL, config-driven)
@@ -11,8 +12,8 @@ derived from the **same module read**, but this one **sends email to every stude
 own skill and is invoked deliberately — never automatically bundled with the pages.
 
 > **Course coordinates are NEVER hardcoded.** Read them from `course_config.load(<course_slug>)`:
-> `course_id`, `school`, `canvas_base_url`, `canvas_token_env`. e.g. `<course>` → school `<school>`, course
-> `58774`, token `<SCHOOL>_CANVAS_TOKEN`; `<course>` → school `<school>`, course `69095`. The user names the
+> `course_id`, `school`, `canvas_base_url`, `canvas_token_env`. e.g. `csci19a` → school `lpc`, course
+> `58774`, token `LPC_CANVAS_TOKEN`; `cs110` → school `avc`, course `69095`. The user names the
 > `course_slug` (or you infer it from the working directory); everything else comes from the config.
 
 ## Step 1 — read the module ONCE (via `canvas_rest`)

@@ -7,6 +7,7 @@ description: >
   reflection, and bakes the student "do not delete the cells" guidance. The creation and grading
   sides are mirror images — the grader anchors on exactly what this skill stamps. Global; pairs with
   `skills/grade-nb`.
+tools: [create_notebook_homework, build_notebook_assignment_page]
 ---
 
 # nb-homework-create — build an NB template the grader can anchor
@@ -69,7 +70,7 @@ and it can't be graded (a cell that never runs has no output to judge). Test the
 
 Pick a placeholder value of the right TYPE (`0`, `0.0`, `''`, `[]`) so the cell runs end to end.
 **Verify mechanically before shipping: `ast.parse` every code cell.** Also fix typos in any cell you
-touch (`varibles`, `repectivelu`, `Calcurate`, `seprated` …). *(Both wrong shapes shipped in <course>
+touch (`varibles`, `repectivelu`, `Calcurate`, `seprated` …). *(Both wrong shapes shipped in CS110
 ch02; the `=  #` one was introduced by this very skill's earlier wording — 2026-08-02.)*
 
 **Practice + a final DRILL section (this is what `enrich`'s `add` is for)**
@@ -185,14 +186,14 @@ confused with the grading driver or the operational engine tree). Four subcomman
   cell is printed; `--dry` shows them without writing.
   **Why it exists:** `01-strings_1`'s 2026-08-02 rewrite gave all 7 sections a correct pin prompt but
   left the January notebook's own three pin cells in place, so sections 4, 6 and 7 each told the
-  student to name the same revision `Section 1`, `Section 2` and `Section 3`. It was a <course> student
+  student to name the same revision `Section 1`, `Section 2` and `Section 3`. It was a CS110 student
   who noticed, mid-assignment. **After any `enrich` onto an existing base, grep the result for the old
   base's instruction wording** — the contradiction is invisible until someone reads both cells.
   ```
   nb_create.py prune 01-strings_1.ipynb --match "Rename the current pinned revision" --dry
   ```
 - **`stamp <in.ipynb> [--manifest m]`** — anchor an EXISTING template's problem cells (retrofit).
-Existing templates (e.g. `<org>/PythonCH03/ch03.ipynb`) have NO anchors. Run the stamper to inject
+Existing templates (e.g. `DVC-COMSC/PythonCH03/ch03.ipynb`) have NO anchors. Run the stamper to inject
 `@anchor`/`@answer` (source comments) + `grade_id` (metadata) into instruction/answer cells, and to
 insert missing answer cells + section pin/essay prompts. New templates are built stamped from the start.
 
@@ -211,7 +212,7 @@ and students submit correctly. **ch03/Lab Ch3 failed this** — no rubric on the
 WHERE the per-section summary goes → students wrote one overall blurb in the body → Reflection
 under-scored. Do NOT repeat that.
 
-**(a) Rubric TABLE — formatted (real HTML table, inline Courier per the <course> code-font rule).**
+**(a) Rubric TABLE — formatted (real HTML table, inline Courier per the COMSC240 code-font rule).**
 Keys MUST be the engine's `comp / rev / refl` — that is what `grade_engine/graders/nb.py` scores.
 Example for a 50-pt lab:
 | Item | Pts | What earns it |
@@ -230,7 +231,7 @@ Example for a 50-pt lab:
 
 ⛔ **Do NOT put the authenticity-DETECTION policy on the page.** How revision timing / pinned-revision
 server times are used to flag copy-paste or AI assistance (the 괘씸도 lever) is the **AI's Stage-B
-grading policy** — it lives ONLY in `GRADING.md Part C §4b` + <course> `CLAUDE.md`, is used by the AI
+grading policy** — it lives ONLY in `GRADING.md Part C §4b` + COMSC240 `CLAUDE.md`, is used by the AI
 when grading, and is **NEVER shown to students** (revealing it teaches evasion).
 
 **(c) Submission spec — say WHERE each part goes:**

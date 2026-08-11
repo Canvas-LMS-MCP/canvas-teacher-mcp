@@ -1,6 +1,7 @@
 ---
 name: git-asmt-repo
 description: "GLOBAL, language-agnostic L1 abstract for building + testing a GitHub coding-assignment repo through the org-hub autograder. Owns the WHAT (audit → instruction-fidelity harness → prove 100/100 → ship the Starter → gates) with NO language mechanics. The HOW-to-compile/run/assert is delegated to an L2 language skill (git-asmt-repo/languages/*), and the course coordinates come from an L3 course wrapper (config). Use as the shared core every course's git build/test wrapper points to. NEVER re-implement this per course."
+tools: [build_starter_repo, list_autograder_runs, get_autograder_log]
 ---
 
 # git-asmt-repo — GLOBAL abstract (L1)
@@ -39,7 +40,7 @@ shipping, or "fixing" anything, diff the repo's `classroom.yml` against its temp
 loud which graders differ. **Never edit a repo's yml to correct it — change the TEMPLATE, then
 propagate** (local dir → solution master → Starter, all three, per Part C). The CORE RULE above
 still governs how you RUN an already-released repo; this governs what a NEW one is built from.
-*(2026-08-02: three <course> repos each carried a retired `-fsanitize=address` grader; the template
+*(2026-08-02: three CS120 repos each carried a retired `-fsanitize=address` grader; the template
 had dropped it long before, and no skill file said where the template lived.)*
 
 ---
@@ -196,7 +197,7 @@ A Starter that PASSES its own tests means the answer shipped or the tests are em
 ### How a Starter is MADE (the only sanctioned sequence)
 
 **Run `code/git_starter_build.py` — do not hand-execute these steps.** The script exists because the
-sequence is mechanical and a skipped step is invisible: on 2026-07-30 `<COURSE>A612Starter` sat EMPTY
+sequence is mechanical and a skipped step is invisible: on 2026-07-30 `CSCI19A612Starter` sat EMPTY
 (0 commits) for nine days because the push step was never run for that one repo while its siblings
 were fine. Hand-running is allowed only to debug the script, and then the verification below is still
 mandatory.
@@ -231,7 +232,7 @@ assignment, never a default:
 give away graded design — a final project, a from-scratch class-design task. Say so in the Part A
 audit, because a red COMPILE on a Starter is otherwise read as GATE D (a harness bug).
 
-*(Built 2026-08-05 for <course> `FP`: the tests call `Course`/`Student`/`Enrollment` directly, so a
+*(Built 2026-08-05 for CSCI-19A `FP`: the tests call `Course`/`Student`/`Enrollment` directly, so a
 compiling Starter would have had to ship all three class skeletons — 30 of the rubric's 80 structure
 points, handed over.)*
 
@@ -253,17 +254,17 @@ build files are the only ones that stay), from git history too; (b) build artifa
 tree = only the build's files (edited source + tests + workflow), no solution copy, no artifact.
 
 **Strategy (`PROVISION`) — `master-strip` is the DEFAULT (below); L3 overrides ONLY when a course
-differs.** The dir → repo → Starter mechanic is the <course> default for everyone; a course that deviates
+differs.** The dir → repo → Starter mechanic is the CS120 default for everyone; a course that deviates
 (and it can change per semester) names its own `provision_strategy` in its L3 wrapper to override.
 Named strategies:
-- **`master-strip`** — a solution-master repo exists (`<course>{CODE}`): push the audited solution to it
+- **`master-strip`** — a solution-master repo exists (`CS120{CODE}`): push the audited solution to it
   (SHA green/100; missing master → RAISE, don't auto-create), then strip a `/tmp` copy to a compiling
   stub (keep signatures + driver), fresh `git init` + one commit, `gh repo create <Starter> --private
   --source=. --push`, mark `--template`. (Do NOT `--template <solution>` — stamps the solution as
-  commit 1.) *(<course>, <course>.)*
+  commit 1.) *(CS120, CS122.)*
 - **`dir-to-starter`** — no master (a master would duplicate): build the Starter **directly from the
-  local dir** (strip → fresh push), skip the master entirely. *(e.g. <course> reusing <course> dirs.)*
-- **(add per course as they migrate — <course> / <course> / V15 each name their own.)**
+  local dir** (strip → fresh push), skip the master entirely. *(e.g. COMSC140 reusing CS122 dirs.)*
+- **(add per course as they migrate — COMSC110 / CMPSCI235 / V15 each name their own.)**
 
 Whatever the strategy, the invariant above still holds; L1 verifies it in GATE C.
 
@@ -353,5 +354,5 @@ and every step's `conclusion=success`.
 - **L3 course wrappers:** each course's `…-git-repo` skill (org, prefix, language, chapter→model map).
 - **Policy:** `CourseGlobalWorkflow/GRADING.md` (rubric), `Access/GitHub.md` (autograder
   classroom.yml rules), `Access/GitHub.md`.
-- **Origin ports being folded in:** <school> <course> `git-homework` (Java), <course> `git-assignment`
-  (Python), <course> `github-repo-build`/`github-repo-test` (C++).
+- **Origin ports being folded in:** LPC CSCI19A `git-homework` (Java), COMSC240 `git-assignment`
+  (Python), CS120 `github-repo-build`/`github-repo-test` (C++).

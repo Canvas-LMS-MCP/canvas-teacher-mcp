@@ -10,8 +10,8 @@ from __future__ import annotations
 from mcp.server.mcpserver import MCPServer
 
 from . import skills
-from .servers import (announcements, assignments, builders, courses, grading, modules, pages,
-                      quizzes, submissions, system)
+from .servers import (announcements, assignments, builders, courses, github, grading, modules,
+                      pages, quizzes, submissions, system)
 
 INSTRUCTIONS = """\
 Canvas authoring and grading for instructors.
@@ -22,7 +22,7 @@ publishes.
 """
 
 _MODULES = (system, courses, pages, modules, assignments, quizzes, announcements, submissions,
-            builders, grading)
+            builders, github, grading)
 
 
 def build_server() -> MCPServer:

@@ -8,6 +8,7 @@ description: >
   flow (skills/grade/SKILL.md), the layer map (CourseGlobalWorkflow/README.md), and the engine
   contracts (GradingEngine/*) into one sequential runbook, and ships the runnable Stage-A
   driver `grade_skill.py`. Invoke BEFORE any grading work — never grade ad-hoc.
+tools: [read_assignment_instructions, propose_rubric, run_stage_a, post_grades, list_submissions, classify_submissions]
 ---
 
 # grade — the runbook

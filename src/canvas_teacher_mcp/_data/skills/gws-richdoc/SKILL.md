@@ -2,6 +2,7 @@
 name: gws-richdoc
 description: Create a rich-format Google Doc (banner, color section boxes, navy step badges, tip/info/warning callouts, dark syntax-colored code blocks, bullets) DETERMINISTICALLY via the fixed generator build.py. Use when the user asks for a "gws-richdoc / rich-gdoc" doc or a polished, visually-structured Google Doc. ALWAYS run build.py — never hand-author the HTML (that is what made every session look different).
 type: skill
+tools: [build_rich_doc]
 ---
 
 # gws-richdoc — Rich Google Doc, ONE fixed look

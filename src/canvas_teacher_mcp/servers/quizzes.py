@@ -9,8 +9,8 @@ from __future__ import annotations
 from ..quiz import quiz_builder as qb
 from . import _ctx
 
-TOOLS = ("get_quiz", "list_quiz_questions", "create_quiz", "add_quiz_questions", "finalize_quiz",
-         "parse_question_bank")
+TOOLS = ("get_quiz", "list_quiz_questions", "create_quiz", "update_quiz", "add_quiz_questions",
+         "finalize_quiz", "parse_question_bank")
 
 
 def _conn(course: str):
@@ -42,6 +42,20 @@ def create_quiz(course: str, title: str, description: str = "", time_limit: int 
     return qb.create_quiz(base, token, cid, title=title, description=description,
                           time_limit=time_limit, allowed_attempts=allowed_attempts,
                           due_at=due_at, assignment_group_id=assignment_group_id)
+
+
+def update_quiz(course: str, quiz_id: int, title: str | None = None,
+                description: str | None = None, time_limit: int | None = None,
+                allowed_attempts: int | None = None, due_at: str | None = None) -> dict:
+    """Update a quiz's settings. Publish state is left alone — the instructor publishes."""
+    base, token, cid = _conn(course)
+    fields = {k: v for k, v in (("title", title), ("description", description),
+                                ("time_limit", time_limit),
+                                ("allowed_attempts", allowed_attempts), ("due_at", due_at))
+              if v is not None}
+    if not fields:
+        raise ValueError("nothing to update")
+    return qb.update_quiz(base, token, cid, quiz_id, **fields)
 
 
 def add_quiz_questions(course: str, quiz_id: int, questions: list[dict]) -> dict:
@@ -118,6 +132,6 @@ def parse_question_bank(text: str, chapter: int | str = "", points: float = 1) -
 
 
 def register(server) -> None:
-    for fn in (get_quiz, list_quiz_questions, create_quiz, add_quiz_questions, finalize_quiz,
-               parse_question_bank):
+    for fn in (get_quiz, list_quiz_questions, create_quiz, update_quiz, add_quiz_questions,
+               finalize_quiz, parse_question_bank):
         server.add_tool(fn)
