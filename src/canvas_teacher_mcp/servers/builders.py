@@ -14,7 +14,9 @@ from ..pages import git_page as _git_page
 from ..pages import nb_page as _nb_page
 from ..richdoc import build as _richdoc
 
-TOOLS = ("build_coding_assignment_page", "build_notebook_assignment_page", "build_rich_doc")
+TOOLS = ("build_coding_assignment_page", "build_notebook_assignment_page", "build_rich_doc",
+         "build_weekly_agenda", "build_module_overview", "plan_slide_sections",
+         "create_notebook_homework")
 
 
 def build_coding_assignment_page(course: str, assignment: dict, points: float,
@@ -57,6 +59,58 @@ def build_rich_doc(blocks: list, name: str, folder_id: str | None = None) -> dic
     return _richdoc.make(blocks, name, folder_id=folder_id)
 
 
+def build_weekly_agenda(course: str, module_id: int, week: str, intro: str,
+                        topic_bullets: list[str], review_note: str, closing: str,
+                        learned: list[str] | None = None) -> dict:
+    """Build a week's Agenda page, and the Wrap-up when `learned` is given.
+
+    Both are generated from the SAME module contents, so what the week promised and what it
+    reports having covered cannot drift. Read the `agenda-wrapup` skill first.
+    """
+    from ..pages import agenda
+
+    return agenda.build_and_place(course, module_id, week=week, intro=intro,
+                                  topic_bullets=topic_bullets, review_note=review_note,
+                                  closing=closing, learned=learned)
+
+
+def build_module_overview(course: str, slug: str, overview_html: str, sections: list,
+                          deck_id: str | None = None) -> dict:
+    """Build a module's overview page — the plan, then a block per group of items.
+
+    `sections` are the blocks; `plan_slide_sections` produces them when the module is organised
+    by slide deck. Read the `module-overview-page` skill first.
+    """
+    from ..pages import module_overview
+
+    return module_overview.make_page(course, slug, overview_html, sections, deck_id=deck_id)
+
+
+def plan_slide_sections(slides: list) -> list:
+    """Turn a per-slide plan into overview sections: what this deck covers, then what to do with it.
+
+    Each slide is `{"title", "summary_html", "tasks", "deck_id"}`. Feed the result to
+    `build_module_overview` as its `sections`.
+    """
+    from ..pages import slide_plan
+
+    return slide_plan.slide_sections(slides)
+
+
+def create_notebook_homework(spec: dict) -> dict:
+    """Build a notebook homework template with the per-cell anchors the grader reads.
+
+    The anchors are what makes `grade-nb` able to say WHICH section a student left unrun, so a
+    notebook authored any other way cannot be graded the same way. Read the `nb-homework-create`
+    skill first.
+    """
+    from ..pages import nb_create
+
+    return nb_create.build(spec)
+
+
 def register(server) -> None:
-    for fn in (build_coding_assignment_page, build_notebook_assignment_page, build_rich_doc):
+    for fn in (build_coding_assignment_page, build_notebook_assignment_page, build_rich_doc,
+               build_weekly_agenda, build_module_overview, plan_slide_sections,
+               create_notebook_homework):
         server.add_tool(fn)

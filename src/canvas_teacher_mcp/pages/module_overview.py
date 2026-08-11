@@ -24,16 +24,10 @@ import os
 import sys
 from urllib.parse import urlparse
 
-_HERE = os.path.dirname(os.path.abspath(__file__))
-# $CANVAS_LMS_ROOT/.claude/skills/module-overview-page/module_overview.py -> code at ../../code
-_CODE = os.path.normpath(os.path.join(_HERE, "..", "..", "code"))
-sys.path.insert(0, _CODE)
-sys.path.insert(0, os.path.join(_CODE, "canvas_core"))
-
-from canvas_core.assignment_page_builder import section, slide_embed, NAVY  # noqa: E402
-import canvas_rest  # noqa: E402
-from canvas_token_auth.token import get_token  # noqa: E402
-import course_config  # noqa: E402  # THE config reader (single source; never re-implement)
+from .page_builder import section, slide_embed, NAVY
+from .. import rest as canvas_rest
+from ..auth.token import get_token
+from .. import course_config  # THE config reader (single source; never re-implement)
 
 DECK_EMBED = "https://docs.google.com/presentation/d/%s/embed?start=false&loop=false&delayms=3000"
 
@@ -108,7 +102,7 @@ def make_page(course_slug, slug, overview_html, sections, *,
               deck_id=None, stylesheet=None, push=False, backup_dir=None, token=None):
     """Build (and optionally PUT) a course's module overview page.
 
-    course_slug   : course_config slug, e.g. '<course>' (coords come from there).
+    course_slug   : course_config slug, e.g. 'cs120' (coords come from there).
     slug          : Canvas page url slug (e.g. 'git-and-github-systems').
     overview_html : AUTHORED — 1-2 <p> paragraphs (NO <code>).
     sections      : AUTHORED — [(header, summary_html|None, items, section_deck_id|None)].

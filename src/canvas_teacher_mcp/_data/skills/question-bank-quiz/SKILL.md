@@ -1,9 +1,10 @@
 ---
-name: publisher-bank-quiz
-description: "GLOBAL — turn a publisher's plain-text question bank (Liang/Pearson test bank, one chapter per file) into a Canvas CLASSIC quiz. Parses the bank into quiz_builder's question JSON, renders a preview HTML for review, then delegates the Canvas write to quiz-builder. Multiple-choice and multiple-answer items; per-question points are an input. Use when the user has a chapter test-bank .txt (or .docx text) and wants it as a Canvas quiz. Triggers: 'publisher bank', 'test bank', 'chapter N quiz from the bank', '뱅크로 퀴즈'."
+name: question-bank-quiz
+description: "GLOBAL — turn a plain-text question bank into a Canvas CLASSIC quiz. Any text works once it is in the bank shape (numbered stem, lettered choices, an answer key); a publisher test bank is the common case, not the requirement. Parses the bank into quiz_builder's question JSON, renders a preview HTML for review, then delegates the Canvas write to quiz-builder. Multiple-choice and multiple-answer items; per-question points are an input. Triggers: 'question bank', 'test bank', 'publisher bank', 'chapter N quiz from the bank', '문제은행', '뱅크로 퀴즈'."
+tools: [parse_question_bank, create_quiz, add_quiz_questions, finalize_quiz]
 ---
 
-# publisher-bank-quiz — test bank → Canvas quiz
+# question-bank-quiz — a text bank → Canvas quiz
 
 An **adapter in front of `quiz-builder`**, not a second quiz engine. It converts an
 unstructured publisher bank into the JSON `quiz_builder.build_quiz_from_file` already
@@ -45,13 +46,34 @@ Key:cde  optional rationale                answer letters, then the author's pro
 
 One answer letter → `mc`. Two or more → `ma` (`multiple_answers_question`).
 
+## The input shape IS the contract
+
+The parser reads exactly one shape:
+
+```
+12.<TAB>stem text
+a.<TAB>choice
+b.<TAB>choice
+Key:b
+```
+
+Text that arrives in any other shape — `Q1)` numbering, `Answer: C`, a table pasted out of a
+PDF, a slide's bullet list — is REWRITTEN into the shape above before parsing. **The parser is
+never widened to accept a new shape.** One accepted shape means the format is knowable; a parser
+that grew a branch per source is a format nobody can state. Save the rewritten text as an output:
+it is what the questions were parsed from, and the provenance only holds if it is kept.
+
 ## Run it
 
-```bash
-cd "$Course_Globals/.claude/skills"
-python3 publisher-bank-quiz/bank_parse.py <bank.txt> \
-        --course <slug> --chapter 7 --points 3 [--quiz-id N] [--intro-html "<p>…</p>"]
 ```
+parse_question_bank(text, chapter=7, points=3)   -> questions + preview_html
+   review the preview, then
+create_quiz(course, title)                       -> an empty unpublished quiz
+add_quiz_questions(course, quiz_id, questions)
+finalize_quiz(course, quiz_id)
+```
+
+Review the preview before anything reaches Canvas.
 
 Writes to `<output_dir>/quiz_build/Ch<N>/` (path derived via `course_config`):
 

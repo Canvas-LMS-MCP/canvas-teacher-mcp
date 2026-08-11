@@ -9,7 +9,8 @@ from __future__ import annotations
 from ..quiz import quiz_builder as qb
 from . import _ctx
 
-TOOLS = ("get_quiz", "list_quiz_questions", "create_quiz", "add_quiz_questions", "finalize_quiz")
+TOOLS = ("get_quiz", "list_quiz_questions", "create_quiz", "add_quiz_questions", "finalize_quiz",
+         "parse_question_bank")
 
 
 def _conn(course: str):
@@ -90,6 +91,33 @@ def _question(q: dict) -> dict:
                      "true_false or essay")
 
 
+def parse_question_bank(text: str, chapter: int | str = "", points: float = 1) -> dict:
+    """Turn a plain-text question bank into questions `add_quiz_questions` accepts.
+
+    The text must be in the bank shape — a numbered stem, lettered choices, an answer key:
+
+        12.<TAB>What does this print?
+        a.<TAB>1
+        b.<TAB>2
+        Key:b
+
+    Text in any other shape is REWRITTEN into this shape first; the parser is not widened.
+    Returns the parsed questions plus a preview HTML to show the instructor before anything
+    reaches Canvas.
+    """
+    from ..quiz import bank_parse
+
+    questions = bank_parse.parse(text)
+    items = bank_parse.to_items(questions, chapter, points)
+    return {
+        "count": len(items),
+        "questions": items,
+        "preview_html": bank_parse.preview_html(f"Chapter {chapter}" if chapter else "Bank",
+                                                questions, items),
+    }
+
+
 def register(server) -> None:
-    for fn in (get_quiz, list_quiz_questions, create_quiz, add_quiz_questions, finalize_quiz):
+    for fn in (get_quiz, list_quiz_questions, create_quiz, add_quiz_questions, finalize_quiz,
+               parse_question_bank):
         server.add_tool(fn)

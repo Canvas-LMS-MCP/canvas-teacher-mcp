@@ -14,7 +14,7 @@ are fixed here so every week looks the same.
 
 Usage:
     from gen_agenda import build_and_place
-    build_and_place("<course>", module_id, week="Week 4",
+    build_and_place("comsc240", module_id, week="Week 4",
                     intro="Week 4 — Midterm 2 (Chapter 5. Functions)",
                     topic_bullets=[...], review_note="...", closing="...",
                     learned=[...])   # learned -> wrap-up "you learned" bullets
@@ -23,15 +23,8 @@ import json
 import os
 import sys
 
-_HERE = os.path.dirname(os.path.abspath(__file__))
-# The tree root comes from the environment, never from a directory NAME — walking up looking for
-# one only works inside this tree, and an installed package sits outside it.
-sys.path.insert(0, os.path.normpath(os.path.join(_HERE, "..", "..", "code")))
-from canvas_root import root  # noqa: E402
-_CG = str(root())
-sys.path.insert(0, os.path.join(_CG, ".claude", "code"))
-import canvas_rest as cr  # noqa: E402
-import course_config  # noqa: E402  # THE config reader (single source; never open a json here)
+from .. import rest as cr
+from .. import course_config  # THE config reader (single source; never open a json here)
 _CODE = ("<span style=\"font-family:'Courier New',monospace;background-color:#f2f2f2;"
          "padding:1px 5px;border-radius:3px;border:1px solid #e0e0e0;\">%s</span>")
 _TH = "background-color:#1F3864;color:#fff;padding:8px;text-align:left;border:1px solid #ccc;"

@@ -44,10 +44,6 @@ import os
 import re
 import sys
 
-_CODE = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "code"))
-if _CODE not in sys.path:
-    sys.path.insert(0, _CODE)
-
 _SEP = re.compile(r"(?m)^#[ \t]*$")
 _SECTION = re.compile(r"(?i)^\s*sections?\s+\d")
 _QSTART = re.compile(r"^\s*(\d+)\s*[.]\s*(.*)$")
