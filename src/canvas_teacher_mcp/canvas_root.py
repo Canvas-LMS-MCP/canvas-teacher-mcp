@@ -23,11 +23,39 @@ Rule: CourseGlobalWorkflow/Where/CourseConfig.md.
 import os
 from pathlib import Path
 
-_FALLBACK_POINTER = Path.home() / ".canvas-teacher-mcp" / "root"
-
 
 class RootNotSet(RuntimeError):
-    """CANVAS_LMS_ROOT is absent and no setup has recorded one."""
+    """CANVAS_LMS_ROOT is absent, and the code is not running from inside a tree."""
+
+
+# Said to the ASSISTANT, not to the user: which file to edit differs per client, and the assistant
+# knows which client it is while this process does not. So the requirement is declared here and
+# carried out there — the same shape as a Canvas token, which is named rather than asked for.
+ROOT_MISSING = """\
+NO ROOT IS CONFIGURED. Every Canvas tool here needs one, so this is the first thing to fix.
+
+Add CANVAS_LMS_ROOT to THIS client's own declaration of the canvas-teacher server — the folder
+the instructor's courses live in (ask them; `~/Teaching` is a reasonable suggestion):
+
+    "env": { "CANVAS_LMS_ROOT": "~/Teaching" }
+
+The file is the client's, not this server's:
+
+    Claude Desktop   ~/Library/Application Support/Claude/claude_desktop_config.json
+    Claude Code      .mcp.json in the project, or ~/.claude.json
+    Codex            ~/.codex/config.toml   ([mcp_servers.canvas-teacher.env])
+    VS Code          .vscode/mcp.json
+    Cursor           ~/.cursor/mcp.json
+
+Add the one key inside the existing canvas-teacher entry. Do not rewrite the file — the other
+servers declared in it belong to the instructor.
+
+If you can edit files, do it and then tell the instructor to restart this client: the environment
+is fixed when the server process starts, so the change takes effect on the next start and not
+before. If you cannot edit files, give them the file path and the exact line to add.
+
+The root is recorded nowhere else. This server keeps no root of its own, so the config the
+instructor can see is the only answer."""
 
 
 def _root_above(start: Path):
@@ -44,7 +72,11 @@ def _root_above(start: Path):
 
 
 def root() -> Path:
-    """The tree root. Environment wins, then a recorded pointer, then the tree this file sits in.
+    """The tree root: the environment, else the tree this file sits in.
+
+    Two sources, and the second only ever answers for code running from inside a tree. There is
+    deliberately no third — a server that records a root of its own would hold state its user
+    cannot see in the config they wrote, and the two would drift.
 
     Raises RootNotSet rather than guessing — a wrong root silently reads the wrong course's
     credentials, and there is no safe default.
@@ -52,16 +84,12 @@ def root() -> Path:
     env = os.environ.get("CANVAS_LMS_ROOT")
     if env:
         return Path(env).expanduser()
-    if _FALLBACK_POINTER.exists():
-        recorded = _FALLBACK_POINTER.read_text().strip()
-        if recorded:
-            return Path(recorded).expanduser()
     here = _root_above(Path(__file__).resolve().parent)
     if here:
         return here
     raise RootNotSet(
-        "CANVAS_LMS_ROOT is not set. Put it in the env block of .claude/settings.json "
-        "(or your MCP client's server declaration), or run setup."
+        "CANVAS_LMS_ROOT is not set. Put it in the env block of .claude/settings.json, "
+        "or of your MCP client's server declaration, and restart the client."
     )
 
 
@@ -71,11 +99,3 @@ def auth_dir() -> Path:
     Cookies are not here — canvas_auth owns them, under storageState/<school>/.
     """
     return root() / ".claude" / "Canvas-Auth"
-
-
-def record_root(path) -> Path:
-    """Remember a root chosen interactively, for a process started without the env var."""
-    p = Path(path).expanduser()
-    _FALLBACK_POINTER.parent.mkdir(parents=True, exist_ok=True)
-    _FALLBACK_POINTER.write_text(str(path))
-    return p

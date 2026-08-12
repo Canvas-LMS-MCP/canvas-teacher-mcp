@@ -115,6 +115,33 @@ registered in the course root before any Canvas call works.
 `workflow/` is `CourseGlobalWorkflow/` minus `Local/`. `get_doc(path)` serves a workflow file to a
 client that has no filesystem.
 
+## The root
+
+Every path this server touches is relative to one directory, and that directory is the only thing
+not derivable from anything else. `canvas_root.root()` resolves it, in this order:
+
+| | Source | When it answers |
+|---|---|---|
+| 1 | `CANVAS_LMS_ROOT` in the environment | always, if set — the client's `env` block puts it there |
+| 2 | the tree this file sits in | only from a source checkout: walk up for a `.claude/Canvas-Auth` directory |
+| — | `RootNotSet` | otherwise |
+
+**There is deliberately no third source.** An earlier design had the server record a root of its
+own in `~/.canvas-teacher-mcp/root`, so that setup could accept one in conversation. That was
+dropped: the root would then live somewhere the instructor never sees, in a file that disagrees
+with the client config they did write. One visible source beats two, even at the cost of a
+restart.
+
+Which config file holds the `env` block differs per client, and the server cannot know which
+client started it — but the assistant talking to you does. So the requirement is DECLARED rather
+than solved: `canvas_root.ROOT_MISSING` names the key, the per-client file paths, and the restart,
+and `server.py` puts it at the front of the connect-time instructions whenever no root resolves.
+`setup` returns the same text. This is the shape a Canvas token already uses — the server names
+the file to put the secret in rather than asking for the secret.
+
+Step 2 exists for development, where the code does sit inside a tree. It never fires for an
+installed package, which lives in the installer's cache.
+
 ## Credentials
 
 Token and cookie are two credentials on the **same REST API**, never two transports. There is no

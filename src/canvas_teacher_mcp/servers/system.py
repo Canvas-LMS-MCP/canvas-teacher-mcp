@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from ..canvas_root import root
+from ..canvas_root import ROOT_MISSING, root
 
 TOOLS = ("get_doc", "setup")
 
@@ -60,12 +60,11 @@ def setup(canvas_url: str | None = None, token: str | None = None,
 
     try:
         tree = root()
-    except Exception as exc:  # noqa: BLE001 — the message is the answer
+    except Exception:  # noqa: BLE001 — the requirement is the answer
         return (
-            "No course root yet. Skills and the workflow still work — they are read from the "
-            "copy inside this package — but nothing can reach Canvas without a root. Set "
-            "CANVAS_LMS_ROOT in this client's env block to the folder holding your courses, "
-            f"then call setup again. ({exc})"
+            ROOT_MISSING
+            + "\n\nUntil then the skill tools and get_doc still work — they read the copy inside "
+              "this package — but nothing can reach Canvas."
         )
 
     if canvas_url:

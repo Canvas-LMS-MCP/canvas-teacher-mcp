@@ -47,27 +47,33 @@ Before the package is on PyPI, run it from git:
 started by your client, not by you. So setup happens in conversation:
 
 > **you:** set up Canvas
-> **assistant:** where should your teaching tree live?
-> **you:** ~/Teaching
 > **assistant:** which school, and what is your Canvas URL?
+> **you:** https://myschool.instructure.com
 > …
 
 The `setup` tool creates the directories, writes the credential file, tests the connection, and
 adds your first course. Ask for it in whatever words you like.
 
+The root is the one thing that has to be in place first — see below.
+
 ## The root
 
-| Source | Precedence |
-|---|---|
-| `CANVAS_LMS_ROOT` in the `env` block | **wins** |
-| whatever `setup` recorded in `~/.canvas-teacher-mcp/root` | used when the env var is absent |
+`CANVAS_LMS_ROOT` comes from the environment, and the `env` block above is how a client supplies
+it. **There is no second place it can come from.** A server that recorded a root of its own would
+hold state you cannot see in the file you wrote, and the two would drift; so it does not.
 
-Setting `env` is the clearer of the two — the path is visible in the same file as the rest of the
-declaration, and switching between two trees is one edit. Leave it out and `setup` will ask.
+Connect without one and the server says so in its connect-time instructions, naming this file and
+the key to add. Your assistant can often make the edit itself. Either way the environment is fixed
+when the server process starts, so **restart the client afterwards** — in Claude Code, open a new
+session.
+
+Running from a source checkout is the one exception: code sitting inside a tree finds that tree by
+walking up for a `.claude/Canvas-Auth` directory. An installed package sits in the installer's
+cache and finds nothing, which is why the env block is the answer for everyone else.
 
 | Variable | Required | Holds |
 |---|---|---|
-| `CANVAS_LMS_ROOT` | no, but preferred | the tree root. Every other path is relative to it |
+| `CANVAS_LMS_ROOT` | **yes** | the tree root. Every other path is relative to it |
 | `<SCHOOL>_CANVAS_TOKEN` | no | a Canvas API token, if you prefer the environment to a file |
 
 The server reads `os.environ`. Where a value comes from — the `env` block, a shell export, a `.env`
