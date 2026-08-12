@@ -1,6 +1,6 @@
 [project]
 name = "canvas-teacher-mcp"
-version = "0.1.0"
+version = "0.0.1"
 description = "Canvas LMS for instructors over MCP — build pages and quizzes, and grade"
 readme = "README.md"
 requires-python = ">=3.10"
