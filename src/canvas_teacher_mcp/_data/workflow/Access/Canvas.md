@@ -11,6 +11,10 @@ Either credential rides the same REST API, so caller code never branches on scho
 - Build the DATA inline, keep the LOGIC canonical. `make_lab(lab, push=True, due_at=…, points=…)`
   sets description, due date and points in one call.
 - Add a missing field to the canonical function. Never reach around it with a raw PUT.
+- When NO canonical function covers the endpoint at all, call it directly — `canvas_rest`, or the
+  `canvas_api_request` tool. Where a function can be added, add it before the second use; where it
+  cannot (an installed package), the direct call is the standing answer. Deleting stays out of
+  reach either way.
 - Extract links and embeds with `canvas_core.links.extract_links(html)` — it classifies every link
   and truncates nothing. For a whole page/module/quiz use `canvas_core.canvas_link_extractor`
   (a quiz hides embeds inside its questions).
