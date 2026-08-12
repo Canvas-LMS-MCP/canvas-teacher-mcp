@@ -61,7 +61,7 @@ Part C §2), `sections` (the pin-per-section expectation, §3), and **`expected_
 time-plausibility threshold, §4b.1). So the FIRST thing once NB is confirmed:
 1. **Manifest exists?** (`grade_engine/manifests/<code>.json`) → use it, continue.
 2. **Missing?** → BUILD it canonically, BEFORE Stage A (never hand-count):
-   - a. Find the template from the assignment instructions (a GitHub/Colab link, e.g. `<org>/PythonCH04/ch04.ipynb`).
+   - a. Find the template from the assignment instructions (a GitHub/Colab link, e.g. `DVC-COMSC/PythonCH04/ch04.ipynb`).
    - b. Fetch to a local file: `gh api repos/<org>/<repo>/contents/ch0N.ipynb --jq .content | base64 -d > /tmp/chNN.ipynb`.
    - c. `python3 -m grade_engine.lib.nb_inspect --build-manifest /tmp/chNN.ipynb <code> --note "..."`.
    - d. **CONFIRM with the instructor**: show `exec_cells` + `sections`. The 'section' count can be off (sub-problems vs top-level — e.g. ch04's 38 `Problem X.Y` → **8** top-level sections). Only proceed once the numbers are right.
@@ -135,7 +135,7 @@ assignment grade fine — each resolves by whatever their notebook actually has.
   `{steps[], content_steps, span_min, bursted, ok, evidence}`; `score_revision(progression)` →
   `{score, reason}`. `revision_check(revs_meta)` → `{count, pinned, span_min, median_gap_min, gaps_min, bursted}`.
 - **Revision + Reflection = the AUTHENTICITY LEVER (GRADING Part C §4b), NOT form deductions.**
-  Completeness is the CORE; rev/refl modulate for 괘씸도 — weigh 경중 (proportionality):
+  Completeness is the CORE; rev/refl modulate for how deliberate the shortfall was — weigh it in proportion:
   - **Genuine process** (real pins growing content over realistic time, no burst; a reasonable
     takeaway + a ROUGH time) → award rev/refl **full / near-full.** Do NOT dock a high-completeness
     student over per-section timing or reflection form. Diligent → stays high.

@@ -388,7 +388,7 @@ def step_badge(num, title):
 
 
 def _callout(bg, fg, glyph, lines):
-    # RULE #1 (readability, 2026-07-13): 개조식 — each line is its OWN bullet, never a run-on wall.
+    # RULE #1 (readability, 2026-07-13): outline form — each line is its OWN bullet, never a run-on wall.
     #   • bullets            (one item = one bullet, not <br>-joined text)
     #   • hanging indent     (wrapped lines align under the text, not under the bullet)
     #   • line breaks        (each item on its own paragraph)

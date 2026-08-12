@@ -34,7 +34,7 @@ gws-richdoc/
 > vs `mode="pretty"` (docstring inner re-tokenized & colored — reads like live code).
 > New `.py` creation is blocked by the code-gate hook → open via `~/.claude/.code-gate`.
 > gws call shape: `--params` = URL/query (`documentId`), `--json` = body (`requests`).
-- **Visual master reference (Drive):** `1UzJhVARxgVB_49KcJg5BxyqIxeKPTiJnf1iRDBEVt6I` ("스킬 템플릿").
+- **Visual master reference (Drive):** `1UzJhVARxgVB_49KcJg5BxyqIxeKPTiJnf1iRDBEVt6I` (the skill template deck).
   Open it to SEE the canonical look. `build.py` reproduces it.
 
 ## The block catalog (the ONLY blocks; fixed styles)

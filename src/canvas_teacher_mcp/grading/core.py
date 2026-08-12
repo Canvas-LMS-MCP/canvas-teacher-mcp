@@ -56,13 +56,13 @@ def _load_config(course):
     is why the retired `grade_engine/config/` dir stayed alive here after every other consumer
     had moved to `<course>/.claude/course-config/<slug>.json`. A path also let a caller aim the
     engine at any file — the wrong-school class of bug `course_config` exists to prevent.
-    A `.json` path is still accepted (…/<course>.json → "<course>") so existing invocations keep
+    A `.json` path is still accepted (…/cs120.json → "cs120") so existing invocations keep
     working; the file it names is no longer read.
     """
     if isinstance(course, str) and course.endswith(".json"):
         course = os.path.basename(course)[:-5]
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from .. import course_config
+    import course_config
     return course_config.load(course)
 
 
@@ -70,7 +70,7 @@ def _credential(config, base_url):
     """The Canvas credential for this course — a token string, or a CanvasSession when the
     school has no token. `canvas_rest` accepts EITHER (client._auth_headers), so the engine
     needs no cookie-specific transport module and none may be added."""
-    from ..auth.token import get_token
+    from canvas_token_auth import get_token
     try:
         return get_token(config["canvas_token_env"], base_url=base_url)
     except RuntimeError:
@@ -79,7 +79,7 @@ def _credential(config, base_url):
             raise RuntimeError(
                 "no Canvas token for %s and the config has no `school`, so no cookie session can "
                 "be opened. Add `school` to the course config (Where/CourseConfig.md)." % base_url)
-        from ..auth.session import CanvasSession
+        from canvas_auth.session import CanvasSession
         return CanvasSession(school)
 
 
@@ -87,7 +87,7 @@ def _credential(config, base_url):
 # It "detected" the grader by keyword-scanning the assignment DESCRIPTION
 # (`repository` / `green check` / `colab` / `jshell` …). That is not detection:
 #   · our own starter boilerplate carries those words, so it mostly echoed the phrasing
-#     WE wrote — every <course> A5x page says "Request your A51 repository … green check",
+#     WE wrote — every CS120 A5x page says "Request your A51 repository … green check",
 #     so it returned `gh` for any content whatsoever;
 #   · it decided the type BEFORE seeing what the student actually submitted;
 #   · it already misrouted a Colab lab to `gh` on a lone "repository" — patched only by
@@ -141,7 +141,7 @@ def _resolve_canvas_id(canvas, base_url, token, course_id, code, canvas_id=None)
     # chapter-5 exam sat on page 2). A truncated list is worse than an error because it reads as
     # an answer. `canvas_rest.client.get` already walks the pages and accepts a token string or a
     # CanvasSession, so there is no second page-walk to maintain here.
-    from ..rest.client import get as _rest_get
+    from canvas_rest.client import get as _rest_get
     asmts = _rest_get(base_url, token, f"/courses/{course_id}/assignments",
                       params={"per_page": 100}) or []
     if isinstance(asmts, dict):
@@ -473,7 +473,7 @@ def next_round(json_dir, code):
     where `suffix` is None for a first grading, else "2nd" / "3rd" / …
 
     THE ROUND IS DERIVED, NOT REMEMBERED (2026-08-05). It used to live only in whatever the
-    caller typed, so forgetting it silently rewrote round 1 — <course> A61's 13-student report
+    caller typed, so forgetting it silently rewrote round 1 — CS120 A61's 13-student report
     became a 1-student file and the run reported success. Disk already knows: Stage A writes
     one `{code}_stageA{round}.json` per gather and nothing ever overwrites it.
 
@@ -481,7 +481,7 @@ def next_round(json_dir, code):
     archives (`_stageA*`) and the records (`_grade*`) — and the answer is trusted ONLY when they
     agree. They disagree exactly where a count would be confidently WRONG:
 
-      · records but no gather archive  → a pre-`_stageA` layout (<course> chapter 5 is all of it).
+      · records but no gather archive  → a pre-`_stageA` layout (CS120 chapter 5 is all of it).
         Counting gathers says "first grading" about work that is already posted.
       · counts differ                  → a gather died between its two writes.
 
@@ -492,7 +492,7 @@ def next_round(json_dir, code):
     rec = _round_suffixes(json_dir, code, "grade")
     # THE OLD LAYOUT LIVES ONE LEVEL UP. Before `json/` existed the record was written beside the
     # report as `{code}_grades.json` (note the plural). Looking only in `json/` reported "no prior
-    # record — first grading" for <course> chapter 5 — eight assignments that are graded AND posted,
+    # record — first grading" for CS120 chapter 5 — eight assignments that are graded AND posted,
     # i.e. the confident answer would have been the destructive one. Counted here so those codes
     # land in the disagree branch below and STOP, which is the honest verdict for a layout whose
     # rounds were never recorded.
@@ -977,7 +977,7 @@ def grade(config_path, code, rubric=None, browser_fetcher=None, canvas_module=No
         # ⛔ CROSS-CHECKED, NEVER TAKEN ON TRUST (2026-08-05). `next_round` derives the round from
         # disk; `report_round` is what a human remembers. Neither decides alone — the derived value
         # VERIFIES the stated one, and a disagreement is an error, not a preference to resolve.
-        # Both failure modes are real and both are destructive: forgetting the round rewrote <course>
+        # Both failure modes are real and both are destructive: forgetting the round rewrote CS120
         # A61's 13-student report as a 1-student file (2026-08-05), and a naive disk count calls a
         # pre-`_stageA` course "first grading" when it is already posted. `force_round` is the one
         # way past — redoing an earlier round on purpose is legitimate, it just has to be said.
@@ -1097,7 +1097,7 @@ def grade(config_path, code, rubric=None, browser_fetcher=None, canvas_module=No
     _reg.setdefault("rounds", {})[_round_key] = {
         # FOLDED (2026-08-05) — `~/…`, not this machine's absolute home. Course_Globals is one
         # Drive folder on more than one Mac; an absolute home stored here is unreadable on the
-        # other one, which is how a render lost its manifest (<course> A61). lib/paths.py
+        # other one, which is how a render lost its manifest (CS120 A61). lib/paths.py
         "record": _paths.fold(json_path),
         "stage_a_record": _paths.fold(stage_a_json),
         "report": _paths.fold(md_path),
@@ -1327,7 +1327,7 @@ def grade(config_path, code, rubric=None, browser_fetcher=None, canvas_module=No
                         f"`{p.get('sha')}` \"{p.get('message')}\" — {p.get('note')}\n")
             f.write("\n"); wrote0 = True
         # ---- Watch notes (instructor DB `students.notes`) — auto-surfaced, instructor-only ----
-        # Prior-grading observations kept in the SQLite DB (e.g. "single-commit repeat — 관찰요망").
+        # Prior-grading observations kept in the SQLite DB (e.g. "single-commit repeat — watch this").
         # Surfacing them here means a previously-flagged student is re-checked automatically on the
         # NEXT assignment, unprompted. If the student is ALSO authenticity-flagged THIS run, mark it
         # a repeat. Never student-facing.

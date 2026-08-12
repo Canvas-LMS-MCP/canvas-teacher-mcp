@@ -5,8 +5,8 @@ attempt × question and hands each question to a type grader through the SAME
 contract core.py uses for a whole assignment. It scores nothing itself:
 
     core.py ──> quiz.py ──(per question, same contract)──> gh | nb | jshell | general
-     0층         1층                                         2층 = the SAME modules
-                                                             an assignment uses at 1층
+     tier 0         tier 1                                         tier 2 = the SAME modules
+                                                             an assignment uses at tier 1
 
 Each question is wrapped as a one-off `asmt` carrying the question's OWN published
 rubric (parsed from the question text) and its own points — GRADING §0: the rubric

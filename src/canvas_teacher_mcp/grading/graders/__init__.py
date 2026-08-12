@@ -7,8 +7,8 @@ a claim rather than a fact: a quiz question could only ever be graded by `gh`, s
 or flowchart question had nowhere to go, while quiz.py's own docstring advertised type
 dispatch. One registry, used by every tier, is what makes the 3-tier assembly real:
 
-    0층 core.py ─ get(designated_type)          → LEAF or COMPOSITE
-    1층 quiz.py ─ get(type_of_this_question)    → the SAME modules core.py uses
+    tier 0 core.py ─ get(designated_type)          → LEAF or COMPOSITE
+    tier 1 quiz.py ─ get(type_of_this_question)    → the SAME modules core.py uses
 
 WHAT EARNS A SLOT. A grader exists only to read a MACHINE artifact a human would otherwise
 run by hand — an autograder run + commit history (gh), notebook execution (nb), a JShell

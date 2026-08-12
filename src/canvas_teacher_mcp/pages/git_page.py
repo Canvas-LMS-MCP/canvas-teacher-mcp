@@ -27,7 +27,7 @@ asmt — has TWO modes, keyed on whether `prototype` is present:
     spec: [(label, desc)]?,            # [3] "What each does" (multi-case)
     algorithm: [str, ...]?,            # [4] pseudo/approach bullets
     examples: str?,                    # [5] a call->return code block
-    restrictions: [str, ...],          # [6] -> yellow bold highlight box (개조식 bullets)
+    restrictions: [str, ...],          # [6] -> yellow bold highlight box (outline bullets)
     elaboration: [str, ...]?,          # what the student MUST write (graded) -> navy box; also a gdoc section
     test_items: [{runner, max, checks}]# [7] autograder table
     rubric_rows: [[label, pts, criteria]]?  # replaces the 4 standard rubric rows entirely, for an
@@ -49,7 +49,7 @@ asmt — has TWO modes, keyed on whether `prototype` is present:
     params: [(name, type, desc)],      # Parameters (manual)
     returns: str, intuition: str       # -> renders the "The function / Parameters / Returns" section
   I/O mode (prototype ABSENT — Ch2-5 stdin->stdout; the <course> default):
-    input, output,                     # str = one paragraph, OR list = 개조식 bullets
+    input, output,                     # str = one paragraph, OR list = outline bullets
                                        #   (e.g. one bullet PER PROGRAM in a two-program assignment)
     expected                           # a code block: sample keyboard input -> screen output
                                        # -> renders "Input / Output / Expected Output" (no "The function")
@@ -270,7 +270,7 @@ def _doc_blocks(asmt, points, w, cfg):
         if asmt.get("expected"):
             blocks += [sec("Expected Output"), build.code(asmt["expected"])]
     else:                               # I/O mode (Ch2-5 stdin->stdout): the program reads input and prints
-        # input/output may be a STRING (one paragraph) OR a LIST (개조식 bullets, one line each -- e.g.
+        # input/output may be a STRING (one paragraph) OR a LIST (outline bullets, one line each -- e.g.
         # one bullet per program in a two-program assignment). A list keeps each program on its own line.
         def _iob(v):
             return build.bullets(list(v)) if isinstance(v, (list, tuple)) else build.body(v or "")

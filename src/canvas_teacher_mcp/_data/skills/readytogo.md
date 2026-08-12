@@ -3,31 +3,34 @@ name: readytogo
 description: Generic session orientation. Loads account + course global rules and detects the active course from the current working directory. For project-specific orientation, run from inside a project dir — the per-course readytogo.md takes precedence over this one.
 ---
 
-## ⛔ RULE #0 — 최우선. go 없이 행동 금지
+## ⛔ RULE #0 — act only after an explicit "go"
 
-**대화 중에는 절대 튀어나가서 바로 수정/실행하지 마라.**
+**While the instructor is talking, answer in words. Nothing else.**
 
-- 사용자가 말하거나 질문하는 중에는 **말로만** 답한다. 툴 호출·파일 수정·코드 실행 금지.
-- 명백한 오류를 발견해도, 대화 중이고 명시적 **"go"가 없으면** 바로 고치지 마라.
-- 순서: **대화 마침 → 계획 제시 → 명시적 "go" 받음 → 그때 시행.**
-- 이건 파일 생성뿐 아니라 **모든 행동**에 적용 (점수 수정, 코드 편집, 채점, POST 등 전부).
-- 계정레벨 `~/.claude/CLAUDE.md` Rule #0와 동일 — 여기서도 최우선.
+- No tool call, no file edit, no code run, while a question is still open.
+- An obvious error found mid-conversation is REPORTED, not fixed, until the "go" comes.
+- The order is: finish the conversation → present the plan → receive an explicit "go" → act.
+- This covers every action, not just writing files: editing a score, editing code, grading, posting.
+- Same as `~/.claude/CLAUDE.md` Rule #0, and it outranks everything here too.
 
+**Work under a one-line header saying what is being done right now.**
 
-**항상 일 하면서 한줄 헤더 달아놓고 일해; 모 하고 있는지**
-[Example] 너 
-""" ▶ ① 컴파일 확인 + report_generator 총괄표도 같은 문제인지 확인 """
-""" Another example """
-▶ ② report_generator §4는 이미 정상(max=헤더). LabCh5P1 재작성 — comp 감점자 7명 노트북 다운받아 "어느 섹션 셀 미실행" 추출
-=======================
----
-[Inline coding prohibition]
-⛔ RULE #0e — 채점 중 손코딩 절대 금지 (canonical 코드만)
+```
+▶ 1  check it compiles, and whether report_generator's summary table has the same fault
+▶ 2  report_generator §4 is already correct (max = header). Rewrite LabCh5P1 — pull the seven
+     notebooks that lost completeness marks and extract which section was left unrun
+```
+
+## ⛔ RULE #0e — grading runs canonical code only
+
+No inline script, no ad-hoc collect/score/render. Grading goes through `grade_skill.py`,
+`report_generator`, `post_grades.py` and nothing else.
+
 ----------------------------------------------------------------------------------------------------
 
 # Ready to Go — Generic Orientation
 
-This is the **global** readytogo. Inside a course-project directory (`<school>/<org>/<course>/`, `<school>/<org>/<course>/`, …) there is also a per-course `<project>/.claude/skills/readytogo.md`.
+This is the **global** readytogo. Inside a course-project directory (`AVC/AVC-CS/CS120/`, `DVC/DVC-COMSC/COMSC140/`, …) there is also a per-course `<project>/.claude/skills/readytogo.md`.
 
 ⛔ **The per-course file EXTENDS this one — it does not replace it.** Run **this** file first (Step 0 + Step 1 below), then continue into the course file's local steps. A per-course readytogo must therefore start with a pointer here and **must NOT copy Step 0's list** — a copied list goes stale, and a session that reads only the course file skips the book entirely (that happened 2026-07-27: three READMEs unread → global knowledge re-invented locally).
 
@@ -103,10 +106,10 @@ pwd  # → identifies which project subdir we're in
 Project locations:
 ```
 $CANVAS_LMS_ROOT/
-├── <school>/<org>/{<course>, <course>, <course>, <course>, <course>, <course>}/
-├── <school>/<org>/{<course>}/
-├── <school>/{<course>, <org>/<course>}/
-└── VC/Ventura-CSV/{<course>, <course>}/
+├── AVC/AVC-CS/{CS110, CS120, CS122, CS130, CS140, CS230}/
+├── CoC/CoC-CMPSCI/{CMPSCI235}/
+├── DVC/{COMSC-010NC, DVC-COMSC/COMSC140}/
+└── VC/Ventura-CSV/{CSV09, CSV17}/
 ```
 
 If cwd matches a project → read that project's `<project>/.claude/skills/readytogo.md` and continue from there.
@@ -144,10 +147,10 @@ find "$CANVAS_LMS_ROOT" -name "*working*log*" -type d 2>/dev/null
 - Where/Data.md (what we store vs read live)
 
 **Available projects**:
-- <school>: <course>, <course>, <course>, <course>, <course>, <course>
-- <school>: <course>
-- <school>: <course>, <course>
-- <school>: <course>, <course>
+- AVC: CS110, CS120, CS122, CS130, CS140, CS230
+- CoC: CMPSCI235
+- DVC: COMSC-010NC, COMSC140
+- VCCCD: CSV09, CSV17
 
 **Open items in GRADING.md** ([TBD] markers):
 [grep output]
@@ -159,14 +162,19 @@ Ready. What are we working on?
 
 ## Canvas ops = Python (canvas_auth + canvas_core + grade_engine)
 
-모든 Canvas 작업은 Python이다 — JS도 `run.sh`도 없다. 호출 형태는 `fn(session, course_id, …)`
-(도메인은 세션 안). 인증(token vs cookie)은 token 존재로 파생 → `Access/CanvasAuth.md`.
+Every Canvas operation is Python — no JS, no `run.sh`. The call shape is `fn(session, course_id, …)`;
+the domain lives inside the session. Token versus cookie is derived from whether a token exists →
+`Access/CanvasAuth.md`.
 
-- **로그인·세션** = `canvas_auth.session.CanvasSession(school)` (401 시 `canvas_auth.login` 자동 재로그인).
-- **Canvas CRUD / 주간 모듈빌드** = `canvas_core.*` (`pages`/`modules`/`assignments`/…) · 코스별 `build_week_module.py`.
-- **채점** = `grade_engine` (학교 불문 주입 없음 — `core._credential`이 토큰/세션 선택) → **POST** = `post_grades.py`.
-- **마감일** = `canvas_core.assignments.set_due_dates`.
-- **공지** = `canvas_core.announcements` — 발송은 함수 호출
-  `send_announcement(CanvasSession(school), cid, title=T, message=M, confirm=SEND_CONFIRM)` (`Access/Canvas.md`).
+- **login / session** = `canvas_auth.session.CanvasSession(school)`; a 401 triggers one
+  `canvas_auth.login` and one retry.
+- **Canvas CRUD, weekly module build** = `canvas_core.*` (`pages` / `modules` / `assignments` / …),
+  plus each course's `build_week_module.py`.
+- **grading** = `grade_engine`; no school is injected — `core._credential` picks token or session.
+  **Posting** = `post_grades.py`.
+- **due dates** = `canvas_core.assignments.set_due_dates`.
+- **announcements** = `canvas_core.announcements`; sending is a function call,
+  `send_announcement(CanvasSession(school), cid, title=T, message=M, confirm=SEND_CONFIRM)`
+  (`Access/Canvas.md`).
 
-어떤 코스에서 옛 `run.sh` orphan을 발견하면 그 자리에서 삭제.
+An old `run.sh` orphan found in any course is deleted on sight.

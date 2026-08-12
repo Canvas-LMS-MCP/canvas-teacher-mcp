@@ -12,8 +12,8 @@ derived from the **same module read**, but this one **sends email to every stude
 own skill and is invoked deliberately — never automatically bundled with the pages.
 
 > **Course coordinates are NEVER hardcoded.** Read them from `course_config.load(<course_slug>)`:
-> `course_id`, `school`, `canvas_base_url`, `canvas_token_env`. e.g. `<course>` → school `<school>`, course
-> `58774`, token `<SCHOOL>_CANVAS_TOKEN`; `<course>` → school `<school>`, course `69095`. The user names the
+> `course_id`, `school`, `canvas_base_url`, `canvas_token_env`. e.g. `csci19a` → school `lpc`, course
+> `58774`, token `LPC_CANVAS_TOKEN`; `cs110` → school `avc`, course `69095`. The user names the
 > `course_slug` (or you infer it from the working directory); everything else comes from the config.
 
 ## Step 1 — read the module ONCE (via `canvas_rest`)
@@ -30,11 +30,11 @@ Let `base = cfg["canvas_base_url"]`, `cid = cfg["course_id"]`, `tok = canvas_tok
 
 ### 1. Friendly overview — "your week at a glance"
 A kind, plain-English guide. Cover:
-- **가) Everything this week, summarized** — what to **read**, what to **watch**, what to **do**, what to
+- **a) Everything this week, summarized** — what to **read**, what to **watch**, what to **do**, what to
   **submit** — all in one short scannable list.
-- **나) What you'll learn / the goal** — what you learn this week, and **what you'll be able to do by the end
+- **b) What you'll learn / the goal** — what you learn this week, and **what you'll be able to do by the end
   of the week** (concrete outcome, motivating).
-- **다) Skill check** — a short "can you do this now?" check at the end: if you can, that's **the skill you
+- **c) Skill check** — a short "can you do this now?" check at the end: if you can, that's **the skill you
   gained this week.** (Frame success as a checkpoint they can self-verify.)
 
 ### 2. What to submit — a TABLE (check this against the module)
