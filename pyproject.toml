@@ -5,10 +5,30 @@ description = "Canvas LMS for instructors over MCP — build pages and quizzes, 
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
+authors = [{ name = "KYU LEE", email = "kwooler@gmail.com" }]
+keywords = ["canvas", "canvas-lms", "mcp", "teaching", "grading", "lms"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Education",
+]
+# A published version is permanent, so the floor stays where it was tested and the ceiling keeps
+# the next major SDK from arriving unannounced — mcp 2.0 removed the API an archived server was
+# still calling, and it died on start.
 dependencies = [
-    "mcp>=2.0",
+    "mcp>=2.0,<3",
     "playwright>=1.40",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Canvas-LMS-MCP/canvas-teacher-mcp"
+Repository = "https://github.com/Canvas-LMS-MCP/canvas-teacher-mcp"
+Issues = "https://github.com/Canvas-LMS-MCP/canvas-teacher-mcp/issues"
 
 [project.scripts]
 canvas-teacher-mcp = "canvas_teacher_mcp.cli:main"
