@@ -25,7 +25,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from .canvas_root import root  # noqa: E402  — the tree root comes from the environment
+from canvas_root import root  # noqa: E402  — the tree root comes from the environment
 
 
 def _course_glob():
@@ -35,6 +35,11 @@ def _course_glob():
 def _domain_of(s):
     m = re.search(r"https?://([^/]+)", s or "")
     return m.group(1) if m else None
+
+
+def _safe(name):
+    """A path segment from a Canvas-supplied name — no separators, no surprises."""
+    return re.sub(r"[^A-Za-z0-9._-]", "-", name)
 
 
 def _course_id_of(url):
@@ -118,11 +123,11 @@ def slugs():
 
 def _fetch_course(base_url, domain, course_id):
     """The course's own name and code, read from Canvas. Credentials resolve by domain."""
-    from .auth.token import get_token, whoami  # noqa: PLC0415 — keep this module importable
-    import urllib.request                      #   without credentials
+    from canvas_token_auth.token import get_token, whoami  # noqa: PLC0415 — keep this module
+    import urllib.request                                  #   importable without credentials
 
     token = get_token("%s_CANVAS_TOKEN" % domain.split(".")[0].upper(), base_url=base_url)
-    whoami(base_url, token)                    # fail early, with a clear reason
+    whoami(base_url, token)                                # fail early, with a clear reason
     req = urllib.request.Request("%s/courses/%s" % (base_url, course_id),
                                  headers={"Authorization": "Bearer %s" % token})
     with urllib.request.urlopen(req, timeout=30) as r:
@@ -134,10 +139,18 @@ def register_course(course_url, *, slug=None, course_dir=None, school=None, cour
 
     Everything is PROPOSED and overridable, because only the instructor knows the tree's shape:
       slug        <- the course code, lowercased
-      course_dir  <- <ROOT>/<COURSE_CODE>
+      course_dir  <- <ROOT>/<SCHOOL>/<COURSE_CODE>
       school      <- the domain's first label; one domain can serve several colleges, so this
                      is a guess the instructor confirms
-    An existing config is never overwritten.
+
+    The school goes in the PATH, not only inside the file. Every wrong-school incident this
+    project has had was a coordinate that looked right because nobody could see it; a folder
+    name is seen without opening anything. Deeper trees are fine — `_index()` does not care how
+    many levels there are — so a tree that groups by department passes `course_dir` and keeps it.
+
+    An existing config is never overwritten, and a slug already registered ANYWHERE is refused:
+    `_index()` is a slug -> path dict, so a second file with the same stem would decide the
+    course by glob order.
 
     Returns {"status": "registered" | "already_registered", "path", "slug", "course_dir",
              "school", "course_code", "name"}.
@@ -158,20 +171,28 @@ def register_course(course_url, *, slug=None, course_dir=None, school=None, cour
 
     slug = (slug or re.sub(r"[^a-z0-9]", "", course_code.lower()) or str(course_id))
     school = school or domain.split(".")[0]
-    course_dir = course_dir or os.path.join(str(root()), re.sub(r"[^A-Za-z0-9._-]", "-",
-                                                                course_code))
+    course_dir = course_dir or os.path.join(str(root()), _safe(school.upper()),
+                                            _safe(course_code))
     if not os.path.isabs(course_dir):
         course_dir = os.path.join(str(root()), course_dir)
 
+    # The slug is the key every tool passes, so it has to be unique across the whole tree —
+    # not merely absent from the directory we happen to be writing to.
+    held = _index().get(slug)
     path = os.path.join(course_dir, ".claude", "course-config", "%s.json" % slug)
-    if os.path.exists(path):
-        return {"status": "already_registered", "path": path, "slug": slug,
+    if held or os.path.exists(path):
+        return {"status": "already_registered", "path": held or path, "slug": slug,
                 "course_dir": course_dir, "school": school, "course_code": course_code,
                 "name": name}
 
+    # Store the course's address, not the page the instructor happened to be looking at:
+    # `…/courses/<id>/modules` parses to the same id but says something untrue, and two
+    # registrations of one course would then disagree on what its URL is.
+    canvas_url = "https://%s/courses/%s" % (domain, course_id)
+
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w") as f:
-        json.dump({"canvas_url": course_url, "school": school}, f, indent=2)
+        json.dump({"canvas_url": canvas_url, "school": school}, f, indent=2)
         f.write("\n")
     return {"status": "registered", "path": path, "slug": slug, "course_dir": course_dir,
             "school": school, "course_code": course_code, "name": name}
@@ -243,7 +264,11 @@ def _subfolder_id(parent_id, name):
     if not parent_id:
         return None
     try:
-        from .richdoc import build  # gws-richdoc's gws client
+        import sys as _sys
+        _sk = os.path.join(str(root()), ".claude", "skills", "gws-richdoc")
+        if _sk not in _sys.path:
+            _sys.path.insert(0, _sk)
+        import build  # gws-richdoc's gws client
         q = ("'%s' in parents and mimeType='application/vnd.google-apps.folder' and "
              "name='%s' and trashed=false" % (parent_id, name))
         files = build._gws(["drive", "files", "list"],

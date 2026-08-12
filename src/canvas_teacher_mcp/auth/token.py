@@ -14,7 +14,7 @@ import urllib.request
 from urllib.parse import urlparse
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from ..canvas_root import auth_dir  # noqa: E402  — the tree root comes from the environment
+from canvas_root import auth_dir  # noqa: E402  — the tree root comes from the environment
 
 
 def get_token(env_var, base_url=None):
@@ -74,6 +74,16 @@ def config_path(canvas_url):
     return auth_dir() / f"{school_slug(canvas_url)}.json"
 
 
+def _write_credential(path, cfg):
+    """Write a credential file and make it owner-only.
+
+    `chmod` follows the write rather than preceding it, so a file that already existed
+    world-readable is corrected too (`Access/CanvasAuth.md`).
+    """
+    path.write_text(json.dumps(cfg, indent=2) + "\n")
+    os.chmod(path, 0o600)
+
+
 def register_school(canvas_url, token=None, *, overwrite=False, timeout=30):
     """Create or complete a school's config, and never store a token that does not work.
 
@@ -108,13 +118,13 @@ def register_school(canvas_url, token=None, *, overwrite=False, timeout=30):
     if token:
         identity = whoami(base_url, token, timeout=timeout)   # raises => nothing is written
         cfg["token"] = token
-        path.write_text(json.dumps(cfg, indent=2) + "\n")
+        _write_credential(path, cfg)
         return {"status": "registered", "path": str(path), "base_url": base_url,
                 "identity": identity.get("name"), "user_id": identity.get("id")}
 
     existed = path.exists()
     cfg.setdefault("token", "")
-    path.write_text(json.dumps(cfg, indent=2) + "\n")
+    _write_credential(path, cfg)
     return {"status": "awaiting_token" if existed else "created",
             "path": str(path), "base_url": base_url}
 
