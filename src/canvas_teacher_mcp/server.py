@@ -19,14 +19,29 @@ Canvas authoring and grading for instructors.
 Call the skill tools for methodology — they return the procedure to follow — then the execution
 tools to carry it out. Pages and assignments are always created unpublished; the instructor
 publishes.
+
+When no tool covers the endpoint you need, `canvas_api_request` calls Canvas directly. Nothing
+here deletes.
+
+Run `setup` first on a new install: it reports what is configured and what is still missing.
 """
 
 _MODULES = (system, courses, pages, modules, assignments, quizzes, announcements, submissions,
             builders, github, grading)
 
 
+def _version() -> str:
+    """The installed package's version, so a client can report what it is talking to."""
+    from importlib.metadata import PackageNotFoundError, version
+
+    try:
+        return version("canvas-teacher-mcp")
+    except PackageNotFoundError:      # running from a source checkout
+        return "0+source"
+
+
 def build_server() -> MCPServer:
-    server = MCPServer(name="canvas-teacher", instructions=INSTRUCTIONS)
+    server = MCPServer(name="canvas-teacher", version=_version(), instructions=INSTRUCTIONS)
 
     execution_tools: set[str] = set()
     for module in _MODULES:
