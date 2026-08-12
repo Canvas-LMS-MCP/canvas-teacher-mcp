@@ -105,7 +105,7 @@ def _question(q: dict) -> dict:
                      "true_false or essay")
 
 
-def parse_question_bank(text: str, chapter: int | str = "", points: float = 1) -> dict:
+def parse_question_bank(text: str, chapter: int = 1, points: float = 1) -> dict:
     """Turn a plain-text question bank into questions `add_quiz_questions` accepts.
 
     The text must be in the bank shape — a numbered stem, lettered choices, an answer key:
@@ -121,13 +121,25 @@ def parse_question_bank(text: str, chapter: int | str = "", points: float = 1) -
     """
     from ..quiz import bank_parse
 
-    questions = bank_parse.parse(text)
-    items = bank_parse.to_items(questions, chapter, points)
+    questions, problems = bank_parse.parse(text)
+    items = bank_parse.to_items(questions, int(chapter), points)
     return {
         "count": len(items),
-        "questions": items,
-        "preview_html": bank_parse.preview_html(f"Chapter {chapter}" if chapter else "Bank",
-                                                questions, items),
+        # Handed straight to add_quiz_questions. The parser's own shape is its business; a caller
+        # asked to translate between two of our formats will eventually get it wrong.
+        "questions": [
+            {"name": it["name"],
+             "type": "multiple_choice" if it["type"] == "mc" else "multiple_answers",
+             "text": it["text_html"],
+             "points": it["points"],
+             "choices": it["choices"],
+             "correct": it["correct"]}
+            for it in items
+        ],
+        # What the parser could not read. Reported, never dropped: a bank whose shape drifted
+        # would otherwise yield a short quiz that looks complete.
+        "problems": problems,
+        "preview_html": bank_parse.preview_html(f"Chapter {chapter}", questions, items),
     }
 
 
