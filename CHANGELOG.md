@@ -19,10 +19,23 @@ All notable changes to this project will be documented here. The format follows 
   instead of only inside the file. Deeper trees still work; `course_dir` overrides the proposal.
 - A course's `canvas_url` is stored as `https://<domain>/courses/<id>`, not as the URL pasted in.
 
+- A course can be reached without being registered: `load` accepts a course URL or id and
+  synthesizes coordinates, writing under `<ROOT>/.claude/output/<course_id>/`. Registration is
+  what earns a slug, a folder, and the instructor-supplied fields. With several schools
+  registered, a bare id is refused — only the URL says which Canvas it means.
+- `setup` reports registered courses and, when there are none, what to do next. The schools
+  branch already did; a report that stopped after "signed in as …" read as "nothing left to do".
+- `setup` refuses a root that is a file or is not writable, instead of failing later somewhere else.
+- `post_grades` states up front that posting needs Claude Code on a client that keeps no session
+  transcript. The view gate cannot be satisfied there, and its "transcript not found" reads as a
+  fixable bug when nothing is missing.
+
 ### Fixed
 - Registering a slug that exists ANYWHERE in the tree is refused and names the file that holds it.
   The index is slug → path, so a second file with the same stem decided the course by glob order.
 - Credential files are written `0600`, and an existing world-readable one is corrected.
+- `github_org` and `db_path` on an unregistered course raise naming the field instead of returning
+  `None`, which surfaced far away as a silent no-op.
 
 ### Removed
 - `canvas_root.record_root()` and the `~/.canvas-teacher-mcp/root` pointer it wrote.

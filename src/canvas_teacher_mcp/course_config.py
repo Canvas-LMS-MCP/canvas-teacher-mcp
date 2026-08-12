@@ -8,9 +8,16 @@ STORED per course (5 fields): `canvas_url, school, pages_folder, db_path, github
 Everything else is DERIVED (course_id/base_url/domain from `canvas_url`; token_env from `school`)
 or a fixed RULE — a course config NEVER pre-declares an assignment type (that lives in grading).
 
-    load(slug|course_id)  -> normalized dict (stored + derived + legacy keys)
-    canvas_coords(x)      -> (base_url, token_env)     the two things a Canvas call needs
+    load(slug|course_id|url) -> normalized dict (stored + derived + legacy keys)
+    canvas_coords(x)         -> (base_url, token_env)  the two things a Canvas call needs
     course_id/base_url/domain/school/token_env/github_org/pages_folder/db_path(x) -> that field
+
+Registration is not a precondition for reaching a course. Authentication is per SCHOOL, so a
+course on a registered school's domain resolves whether anyone registered it or not: `load`
+SYNTHESIZES coordinates for it, marked `registered: False`, with an output_dir under the root
+instead of under a course folder. Registration is what earns a slug, a folder, and the fields
+only an instructor can supply (`db_path`, `github_org`, `pages_folder`); a caller needing one of
+those then fails naming THAT field, which says what to do — unlike "course not registered".
 
 Why here: canvas_rest / canvas_core must stay course-agnostic; a course identity is not a Canvas
 resource. Everything under `code/` and the global skills import THIS — do not copy it.
@@ -57,6 +64,7 @@ def _normalize(cfg, path):
     Accepts a NEW 5-field per-course file or an OLD 14-field file — both come out uniform.
     `path` locates a new file's course dir (for output_dir); old files keep their stored value."""
     out = dict(cfg)
+    out.setdefault("registered", True)     # a file on disk IS the registration; load() overrides
     slug = os.path.basename(path)[:-5].lower()
     for k in ("db_path", "sqlite_db_path", "output_dir"):       # configs store $HOME/… — expand once
         if out.get(k):
@@ -198,21 +206,73 @@ def register_course(course_url, *, slug=None, course_dir=None, school=None, cour
             "school": school, "course_code": course_code, "name": name}
 
 
+def _registered_schools():
+    """{school: domain} for every school that has a credential file, read from the file's own
+    base_url. The filename is a human label — a school on its own domain would not survive
+    being rebuilt from it."""
+    out = {}
+    auth = root() / ".claude" / "Canvas-Auth"
+    if not auth.is_dir():
+        return out
+    for p in sorted(auth.glob("*.json")):
+        try:
+            dom = _domain_of(json.loads(p.read_text()).get("base_url"))
+        except Exception:                                       # noqa: BLE001 — skip a damaged file
+            continue
+        if dom:
+            out[p.stem] = dom
+    return out
+
+
+def _unregistered(course_id, domain=None):
+    """Coordinates for a course nobody registered. Same shape as a stored config, minus what
+    only registration supplies, and `registered: False` so a caller can tell.
+
+    With no domain (a bare id), the school is unambiguous only when exactly one is registered.
+    Two schools and a bare number cannot say which, and guessing picks someone's Canvas at
+    random — so it raises and asks for the URL instead.
+    """
+    schools = _registered_schools()
+    if domain:
+        school = next((s for s, d in schools.items() if d == domain), domain.split(".")[0])
+    elif len(schools) == 1:
+        school, domain = next(iter(schools.items()))
+    elif not schools:
+        raise KeyError("no school is registered, so course %s cannot be reached. Register the "
+                       "school first with its Canvas URL." % course_id)
+    else:
+        raise KeyError("course %s is not registered and %d schools are (%s), so which Canvas it "
+                       "lives on is unknown. Give the full course URL, or register the course."
+                       % (course_id, len(schools), ", ".join(sorted(schools))))
+    out = {"canvas_url": "https://%s/courses/%s" % (domain, course_id),
+           "school": school, "registered": False,
+           "output_dir": os.path.join(str(root()), ".claude", "output", str(course_id))}
+    return _normalize(out, os.path.join(str(root()), "%s.json" % course_id))
+
+
 def load(course):
-    """Normalized config dict for a course. `course` = a slug OR a Canvas course_id.
-    Raises KeyError with the known slugs on no match — never a silent default."""
+    """Normalized config dict for a course. `course` = a slug, a Canvas course_id, or a course URL.
+
+    A registered course is read from its file. An unregistered one is SYNTHESIZED — reaching a
+    course needs the school's credential, not a config (`Where/CourseConfig.md`). Raises rather
+    than defaulting whenever the answer would be a guess.
+    """
     s = str(course).strip().lower()
     idx = _index()
     if s in idx:
         return _read(idx[s])
-    if s.isdigit():                                             # given a Canvas id — find whose it is
-        want = int(s)
-        for slug, p in idx.items():
-            cfg = _read(p)
-            if cfg.get("course_id") == want:
-                return cfg
-    raise KeyError("no course config for %r. Known: %s. A new course needs a 5-field "
-                   "<slug>.json (Where/CourseConfig.md)." % (course, ", ".join(slugs())))
+
+    url_id, domain = _course_id_of(s), _domain_of(s)
+    want = url_id if url_id else (int(s) if s.isdigit() else None)
+    if want is None:
+        raise KeyError("no course config for %r, and it is neither a Canvas id nor a course URL. "
+                       "Known: %s." % (course, ", ".join(slugs()) or "none"))
+
+    for slug, p in idx.items():                                 # a registered course, by its id
+        cfg = _read(p)
+        if cfg.get("course_id") == want:
+            return cfg
+    return _unregistered(want, domain)
 
 
 def canvas_coords(course):
@@ -242,12 +302,24 @@ def token_env(course):
     return load(course)["canvas_token_env"]
 
 
+def _instructor_field(course, key):
+    """A field only registration can supply. Absent because the course was never registered is a
+    different answer from absent because the instructor left it out, and only the first one tells
+    the caller what to do."""
+    cfg = load(course)
+    if cfg.get(key) is None and not cfg.get("registered", True):
+        raise KeyError("%s is unknown for course %s: it is not registered, and %s is a field "
+                       "registration supplies. Register it to set one."
+                       % (key, cfg.get("course_id"), key))
+    return cfg.get(key)
+
+
 def github_org(course):
-    return load(course).get("github_org")
+    return _instructor_field(course, "github_org")
 
 
 def db_path(course):
-    return load(course).get("db_path")
+    return _instructor_field(course, "db_path")
 
 
 # ── Drive folders — ALL OPTIONAL. A course may store a parent `drive_folder`; Pages/Slides are

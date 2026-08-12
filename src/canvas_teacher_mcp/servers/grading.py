@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import os
 
 from ..grading import core
 
@@ -59,6 +60,10 @@ def post_grades(grades_json: str, dry_run: bool = True, fix: bool = False) -> st
     """
     from .. import post_grades as poster
 
+    blocked = _view_gate_unavailable()
+    if blocked and not dry_run:
+        return blocked
+
     argv = [grades_json]
     if not dry_run:
         argv.append("--post")
@@ -71,6 +76,27 @@ def post_grades(grades_json: str, dry_run: bool = True, fix: bool = False) -> st
     report = (out.getvalue() + err.getvalue()).strip()
     header = "DRY RUN — nothing was written.\n" if dry_run else ""
     return f"{header}exit {code}\n{report}"
+
+
+def _view_gate_unavailable() -> str | None:
+    """Why a post cannot go ahead here, said BEFORE it is attempted.
+
+    The view gate proves the evidence was read by finding this session's Claude Code transcript
+    under ~/.claude/projects. A client that keeps no such transcript — Claude Desktop, Codex —
+    cannot satisfy it, so the gate fails closed and reports a missing transcript. That reads as a
+    bug the instructor could fix, and it is not: on that client there is nothing to find. Name the
+    condition instead, while a dry run still works and still shows what would be written.
+    """
+    if os.path.isdir(os.path.expanduser("~/.claude/projects")):
+        return None
+    return (
+        "This client keeps no session transcript, so the view gate cannot confirm the evidence "
+        "was read, and a post that skipped it would be a grade written from something nobody "
+        "looked at.\n\n"
+        "Posting grades runs in Claude Code, where the transcript exists. Everything up to the "
+        "post works here: run_stage_a, the report, and post_grades with dry_run (the default), "
+        "which shows exactly what would be written."
+    )
 
 
 def register(server) -> None:

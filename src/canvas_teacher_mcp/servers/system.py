@@ -7,6 +7,7 @@ with no filesystem has no other way in.
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 from ..canvas_root import ROOT_MISSING, root
@@ -73,7 +74,12 @@ def setup(canvas_url: str | None = None, token: str | None = None,
     if course_url:
         return _register_course(course_url, slug, course_dir)
 
-    lines = [f"course root: {tree}"]
+    problem = _root_problem(tree)
+    if problem:
+        return problem
+
+    lines = [f"course root: {tree}" + ("" if tree.is_dir() else "  (does not exist yet — the "
+                                       "first registration creates it)")]
     for label, path in (
         ("skills", tree / ".claude" / "skills"),
         ("workflow", tree / ".claude" / "CourseGlobalWorkflow"),
@@ -105,6 +111,7 @@ def setup(canvas_url: str | None = None, token: str | None = None,
         except Exception as exc:  # noqa: BLE001 — per-school status, not a failure of setup
             lines.append(f"  {path.stem}: not usable yet — {exc}")
 
+    lines += _course_status()
     lines += [
         "",
         "Skills and the workflow work whether or not they are copied into the course root. "
@@ -112,6 +119,50 @@ def setup(canvas_url: str | None = None, token: str | None = None,
         "so an edit there is lost, while an edit in the course root survives.",
     ]
     return "\n".join(lines)
+
+
+def _root_problem(tree) -> str | None:
+    """A root that cannot hold a tree, said now rather than as a failure three calls later."""
+    if tree.exists() and not tree.is_dir():
+        return (f"The course root {tree} is a file, not a folder. Point CANVAS_LMS_ROOT at a "
+                "folder in this client's server declaration, then restart the client.")
+    probe = tree if tree.is_dir() else tree.parent
+    if probe.is_dir() and not os.access(probe, os.W_OK):
+        return (f"The course root {tree} is not writable, so no course or credential can be "
+                "stored there. Choose a writable folder in this client's server declaration, or "
+                "fix the folder's permissions, then restart the client.")
+    return None
+
+
+def _course_status() -> list:
+    """Registered courses, and what to do when there are none.
+
+    A course is not required to READ Canvas — an unregistered one resolves from its URL — but it
+    is what gives the tools a slug, a folder for output, and the instructor-supplied fields. The
+    schools branch above says what to do next when it is empty; this says the same for courses,
+    because a status report that ends after 'signed in as …' reads as 'nothing left to do'.
+    """
+    from .. import course_config
+
+    try:
+        known = course_config.slugs()
+    except Exception:  # noqa: BLE001 — a root that cannot be listed is reported above
+        return []
+    if not known:
+        return ["courses: none registered",
+                "",
+                "Next: ask the instructor for the course's Canvas URL — the address bar on the "
+                "course, e.g. https://myschool.instructure.com/courses/12345 — and call setup "
+                "again with course_url set. Reading a course works from its URL without this; "
+                "registering is what gives it a short name and a folder of its own."]
+    out = ["courses: " + ", ".join(known)]
+    for slug in known:
+        try:
+            cfg = course_config.load(slug)
+            out.append(f"  {slug}: course {cfg['course_id']} on {cfg['school']}")
+        except Exception as exc:  # noqa: BLE001 — per-course status, not a failure of setup
+            out.append(f"  {slug}: unreadable — {exc}")
+    return out
 
 
 def _register_course(course_url: str, slug: str | None, course_dir: str | None) -> str:
