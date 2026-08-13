@@ -31,6 +31,12 @@ All notable changes to this project will be documented here. The format follows 
   fixable bug when nothing is missing.
 
 ### Fixed
+- Adding questions rebuilds the description summary and clears Canvas's stale counts. A quiz whose
+  questions changed and whose description did not states the wrong number of questions and the
+  wrong total, and `finalize_quiz` reads as an optional last step nobody has to take.
+- The generated part of a description is fenced, so a rebuild replaces its own work and leaves the
+  instructor's writing alone. A description written before the fence existed is treated as theirs
+  in full.
 - A course URL is enough to start. It names the school too, so an unknown school is registered
   from it and the URL is held beside the credential; once the token is in place the next `setup`
   registers the course without being told the URL again. Before, the instructor was sent away for

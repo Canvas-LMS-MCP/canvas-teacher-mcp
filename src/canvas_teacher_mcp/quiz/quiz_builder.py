@@ -28,6 +28,12 @@ if _CODE not in sys.path:
 
 from .. import rest as canvas_rest  # noqa: E402  (the ONLY Canvas access — never raw HTTP here)
 
+# The generated part of a description is fenced by these, so a rebuild replaces its own work and
+# leaves the instructor's alone. Canvas keeps `data-` attributes; it strips `<style>` blocks, not
+# these. Never change the opening string — a description written by an older version keeps it.
+_SUMMARY_OPEN = '<div data-canvas-teacher="summary">'
+_SUMMARY_CLOSE = '</div><!--/canvas-teacher-->'
+
 _TD = 'style="border:1px solid #ccc;padding:6px 10px;"'
 _TH = 'style="border:1px solid #ccc;padding:6px 10px;background-color:#1F3864;color:#fff;text-align:left;"'
 
@@ -219,7 +225,29 @@ def build_description_summary(quiz_meta, questions, intro_html=""):
     trs = "".join(f"<tr><td {_TD}><strong>{k}</strong></td><td {_TD}>{v}</td></tr>" for k, v in rows)
     table = ('<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;">'
              f'<tr><th {_TH}>Item</th><th {_TH}>Value</th></tr>{trs}</table>')
-    return auto + (intro_html or "") + table
+    # The intro goes ABOVE the fence, not inside it. It is the instructor's sentence about what
+    # the quiz covers, and everything inside the fence is replaced wholesale on the next rebuild —
+    # so an intro inside would be written once and silently dropped the next time. It also reads
+    # better first: the topic, then the mechanics.
+    return f'{intro_html or ""}{_SUMMARY_OPEN}{auto}{table}{_SUMMARY_CLOSE}'
+
+
+def split_summary(html):
+    """(what the instructor wrote, the generated summary) — either may be empty.
+
+    A description written before the fence existed has none, so it comes back whole as the
+    instructor's. Keeping something that turns out to be generated is the harmless mistake;
+    discarding something they wrote is not.
+    """
+    html = html or ""
+    i = html.find(_SUMMARY_OPEN)
+    if i < 0:
+        return html.strip(), ""
+    j = html.find(_SUMMARY_CLOSE, i)
+    if j < 0:                                   # truncated fence — keep what precedes it
+        return html[:i].strip(), html[i:]
+    end = j + len(_SUMMARY_CLOSE)
+    return (html[:i] + html[end:]).strip(), html[i:end]
 
 
 # ── ORCHESTRATOR — the ONE entry the skill calls ───────────────────────────────────────────────

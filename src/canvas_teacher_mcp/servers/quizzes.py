@@ -67,26 +67,40 @@ def add_quiz_questions(course: str, quiz_id: int, questions: list[dict]) -> dict
       true_false        correct: true | false
       essay             (no extra fields)
     `text` is HTML.
+
+    Finishes by rebuilding the description summary and clearing Canvas's stale counts, because a
+    quiz whose questions changed and whose description did not is a quiz that states the wrong
+    number of questions and the wrong total. Anything the instructor wrote in the description is
+    kept — see `finalize_quiz`.
     """
     base, token, cid = _conn(course)
     payload = [_question(q) for q in questions]
     result = qb.upsert_questions(base, token, cid, quiz_id, payload)
-    return {"written": len(payload), "result": result}
+    return {"written": len(payload), "result": result,
+            "finalized": finalize_quiz(course, quiz_id)}
 
 
 def finalize_quiz(course: str, quiz_id: int, intro_html: str = "") -> dict:
-    """Rewrite the description summary and refresh the quiz's stale counts.
+    """The description summary is written HERE and nowhere else, from the quiz's own state.
 
-    Canvas leaves `question_count` and `points_possible` stale after any question change, so this
-    runs after the questions are in.
+    `add_quiz_questions` already calls this, so it is needed by hand only to change the intro or
+    to repair a quiz edited elsewhere. Canvas also leaves `question_count` and `points_possible`
+    stale after any question change, and this clears that.
+
+    Whatever the instructor wrote survives: the generated part is fenced, and everything outside
+    the fence is carried back in as the intro. `intro_html` replaces it when given — passing the
+    empty string does not, or every automatic run would erase their writing.
     """
     base, token, cid = _conn(course)
     meta = qb.fetch_quiz(base, token, cid, quiz_id)
     questions = qb.list_questions(base, token, cid, quiz_id) or []
-    html = qb.build_description_summary(meta, questions, intro_html=intro_html)
+    theirs, _ = qb.split_summary(meta.get("description"))
+    intro = intro_html or theirs
+    html = qb.build_description_summary(meta, questions, intro_html=intro)
     qb.put_description(base, token, cid, quiz_id, html)
     qb.refresh_quiz(base, token, cid, quiz_id, meta.get("title"))
-    return {"quiz_id": quiz_id, "questions": len(questions), "title": meta.get("title")}
+    return {"quiz_id": quiz_id, "questions": len(questions), "title": meta.get("title"),
+            "intro_kept": bool(intro), "intro_replaced": bool(intro_html and theirs)}
 
 
 def _question(q: dict) -> dict:
