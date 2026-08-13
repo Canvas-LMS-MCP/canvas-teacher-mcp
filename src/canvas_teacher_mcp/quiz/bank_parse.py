@@ -197,6 +197,43 @@ def preview_html(title, questions, items):
             % (title, title, len(items), sum(i["points"] for i in items), "".join(rows)))
 
 
+def build_dir(course, chapter):
+    """Where a chapter's build files belong: <output_dir>/quiz_build/Ch<N>.
+
+    Derived, never stored — the course config holds `canvas_url` and `school` and nothing that
+    can be computed from where the file itself sits (Where/CourseConfig.md).
+    """
+    from .. import course_config
+
+    return os.path.join(course_config.load(course)["output_dir"], "quiz_build", "Ch%d" % chapter)
+
+
+def write_build(out, text, questions, items, chapter, source_name, intro_html="", quiz_id=None):
+    """Write the three build files and return their paths.
+
+    Split out of `main` so a caller without a command line — the MCP tool — writes exactly what
+    the CLI writes. The source text is kept beside the JSON because it is the provenance: the
+    questions can be traced back to what they were parsed from, and only if it is kept.
+    """
+    os.makedirs(out, exist_ok=True)
+    stem = os.path.join(out, "Ch%d" % chapter)
+
+    with open(stem + "_source.txt", "w", encoding="utf-8") as f:
+        f.write(text)
+    payload = {"intro_html": intro_html, "questions": items}
+    if quiz_id:
+        payload["quiz_id"] = quiz_id
+    with open(stem + "_quiz.json", "w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=1, ensure_ascii=False)
+    title = "Chapter %d — parsed from %s" % (chapter, source_name)
+    with open(stem + "_quiz.html", "w", encoding="utf-8") as f:
+        f.write(preview_html(title, questions, items))
+
+    return {"source_txt": stem + "_source.txt",
+            "quiz_json": stem + "_quiz.json",
+            "preview_html": stem + "_quiz.html"}
+
+
 def main(argv):
     p = argparse.ArgumentParser(prog="bank_parse.py")
     p.add_argument("bank", help="publisher test-bank .txt")
@@ -212,25 +249,10 @@ def main(argv):
     questions, problems = parse(text)
     items = to_items(questions, a.chapter, a.points)
 
-    if a.outdir:
-        out = a.outdir
-    else:
-        from .. import course_config
-        out = os.path.join(course_config.load(a.course)["output_dir"],
-                           "quiz_build", "Ch%d" % a.chapter)
-    os.makedirs(out, exist_ok=True)
+    out = a.outdir or build_dir(a.course, a.chapter)
+    write_build(out, text, questions, items, a.chapter, os.path.basename(a.bank),
+                a.intro_html, a.quiz_id)
     stem = os.path.join(out, "Ch%d" % a.chapter)
-
-    with open(stem + "_source.txt", "w", encoding="utf-8") as f:
-        f.write(text)
-    payload = {"intro_html": a.intro_html, "questions": items}
-    if a.quiz_id:
-        payload["quiz_id"] = a.quiz_id
-    with open(stem + "_quiz.json", "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=1, ensure_ascii=False)
-    title = "Chapter %d — parsed from %s" % (a.chapter, os.path.basename(a.bank))
-    with open(stem + "_quiz.html", "w", encoding="utf-8") as f:
-        f.write(preview_html(title, questions, items))
 
     nums = [q["num"] for q in questions]
     gaps = [n for n in range(min(nums), max(nums) + 1) if n not in nums] if nums else []

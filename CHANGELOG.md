@@ -31,6 +31,10 @@ All notable changes to this project will be documented here. The format follows 
   fixable bug when nothing is missing.
 
 ### Fixed
+- `parse_question_bank` takes `course` and `save`, and writes the source text, the quiz JSON and
+  the preview into that course's `quiz_build/Ch<N>/` — what the command line has always written.
+  The tool had no course, so it could not name an output directory, and the skill document went
+  on describing files nobody was writing.
 - Package-relative imports restored in seven places where an absolute, operational-tree module
   name stood instead: registering a course from its URL, the grading credential path, the report
   render, Stage-B prepare, and the question-bank writer. Most sat inside functions, so the package

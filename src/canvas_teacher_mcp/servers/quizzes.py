@@ -105,7 +105,8 @@ def _question(q: dict) -> dict:
                      "true_false or essay")
 
 
-def parse_question_bank(text: str, chapter: int = 1, points: float = 1) -> dict:
+def parse_question_bank(text: str, chapter: int = 1, points: float = 1,
+                        course: str | None = None, save: bool = False) -> dict:
     """Turn a plain-text question bank into questions `add_quiz_questions` accepts.
 
     The text must be in the bank shape — a numbered stem, lettered choices, an answer key:
@@ -118,12 +119,27 @@ def parse_question_bank(text: str, chapter: int = 1, points: float = 1) -> dict:
     Text in any other shape is REWRITTEN into this shape first; the parser is not widened.
     Returns the parsed questions plus a preview HTML to show the instructor before anything
     reaches Canvas.
+
+    Pass `course` for its build directory, and `save=True` to write the three build files there —
+    the source text, the quiz JSON and the preview — exactly what the command line writes. The
+    preview is what the instructor reviews, so it is worth a file; the source is the provenance
+    for the JSON. Without `course` there is nowhere to write: an output directory belongs to a
+    course, and this server holds no notion of a current one.
     """
     from ..quiz import bank_parse
 
     questions, problems = bank_parse.parse(text)
     items = bank_parse.to_items(questions, int(chapter), points)
+
+    written, out = None, None
+    if course:
+        out = bank_parse.build_dir(course, int(chapter))
+        if save:
+            written = bank_parse.write_build(out, text, questions, items, int(chapter),
+                                             "pasted text")
     return {
+        "build_dir": out,
+        "written": written,
         "count": len(items),
         # Handed straight to add_quiz_questions. The parser's own shape is its business; a caller
         # asked to translate between two of our formats will eventually get it wrong.
