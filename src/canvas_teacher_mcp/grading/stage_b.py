@@ -48,9 +48,8 @@ import os
 import re
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import report_generator as RG  # noqa: E402
-from lib import commit_inspect  # noqa: E402
+from . import report_generator as RG
+from .lib import commit_inspect
 
 
 def _difficulty(code):

@@ -31,8 +31,7 @@ import os
 import re
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from canvas_root import root  # noqa: E402  — the tree root comes from the environment
+from .canvas_root import root  # the tree root comes from the environment
 
 
 def _course_glob():
@@ -131,8 +130,8 @@ def slugs():
 
 def _fetch_course(base_url, domain, course_id):
     """The course's own name and code, read from Canvas. Credentials resolve by domain."""
-    from canvas_token_auth.token import get_token, whoami  # noqa: PLC0415 — keep this module
-    import urllib.request                                  #   importable without credentials
+    from .auth.token import get_token, whoami  # noqa: PLC0415 — keep this module importable
+    import urllib.request                      #   without credentials
 
     token = get_token("%s_CANVAS_TOKEN" % domain.split(".")[0].upper(), base_url=base_url)
     whoami(base_url, token)                                # fail early, with a clear reason
@@ -340,7 +339,7 @@ def _subfolder_id(parent_id, name):
         _sk = os.path.join(str(root()), ".claude", "skills", "gws-richdoc")
         if _sk not in _sys.path:
             _sys.path.insert(0, _sk)
-        import build  # gws-richdoc's gws client
+        from .richdoc import build  # gws-richdoc's gws client
         q = ("'%s' in parents and mimeType='application/vnd.google-apps.folder' and "
              "name='%s' and trashed=false" % (parent_id, name))
         files = build._gws(["drive", "files", "list"],

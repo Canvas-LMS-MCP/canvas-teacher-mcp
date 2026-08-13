@@ -13,8 +13,7 @@ import sys
 import urllib.request
 from urllib.parse import urlparse
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from canvas_root import auth_dir  # noqa: E402  — the tree root comes from the environment
+from ..canvas_root import auth_dir  # the tree root comes from the environment
 
 
 def get_token(env_var, base_url=None):

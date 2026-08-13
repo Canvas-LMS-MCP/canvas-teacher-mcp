@@ -215,7 +215,7 @@ def main(argv):
     if a.outdir:
         out = a.outdir
     else:
-        import course_config
+        from .. import course_config
         out = os.path.join(course_config.load(a.course)["output_dir"],
                            "quiz_build", "Ch%d" % a.chapter)
     os.makedirs(out, exist_ok=True)

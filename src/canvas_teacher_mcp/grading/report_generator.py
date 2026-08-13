@@ -41,9 +41,8 @@ import os
 import re
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from lib.comment_render import render_comment, CommentError  # noqa: E402
-from lib import paths as _paths  # noqa: E402
+from .lib.comment_render import render_comment, CommentError
+from .lib import paths as _paths
 
 
 def _last(name):
@@ -988,7 +987,7 @@ def main(argv):
         # must never do is stamp a proof for a gate that did not pass — verify_and_stamp
         # writes nothing when anything is unread, and the AI can never supply this field.
         try:
-            from lib import view_gate as _vg
+            from .lib import view_gate as _vg
             _vpath0 = os.path.join(_gdir, (_stem.replace("_grade", "_view_verified")
                                            if "_grade" in _stem else _stem + "_view_verified")
                                    + ".json")

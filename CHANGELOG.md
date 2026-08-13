@@ -31,6 +31,11 @@ All notable changes to this project will be documented here. The format follows 
   fixable bug when nothing is missing.
 
 ### Fixed
+- Package-relative imports restored in seven places where an absolute, operational-tree module
+  name stood instead: registering a course from its URL, the grading credential path, the report
+  render, Stage-B prepare, and the question-bank writer. Most sat inside functions, so the package
+  imported, the server started and all 69 tools listed while the first real call died. Four were
+  introduced in 0.0.3 by a verbatim sync from the operational tree; three predated it.
 - Registering a slug that exists ANYWHERE in the tree is refused and names the file that holds it.
   The index is slug → path, so a second file with the same stem decided the course by glob order.
 - Credential files are written `0600`, and an existing world-readable one is corrected.

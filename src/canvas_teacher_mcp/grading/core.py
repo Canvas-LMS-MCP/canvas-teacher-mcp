@@ -61,8 +61,7 @@ def _load_config(course):
     """
     if isinstance(course, str) and course.endswith(".json"):
         course = os.path.basename(course)[:-5]
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    import course_config
+    from .. import course_config
     return course_config.load(course)
 
 
@@ -70,7 +69,7 @@ def _credential(config, base_url):
     """The Canvas credential for this course — a token string, or a CanvasSession when the
     school has no token. `canvas_rest` accepts EITHER (client._auth_headers), so the engine
     needs no cookie-specific transport module and none may be added."""
-    from canvas_token_auth import get_token
+    from ..auth.token import get_token
     try:
         return get_token(config["canvas_token_env"], base_url=base_url)
     except RuntimeError:
@@ -79,7 +78,7 @@ def _credential(config, base_url):
             raise RuntimeError(
                 "no Canvas token for %s and the config has no `school`, so no cookie session can "
                 "be opened. Add `school` to the course config (Where/CourseConfig.md)." % base_url)
-        from canvas_auth.session import CanvasSession
+        from ..auth.session import CanvasSession
         return CanvasSession(school)
 
 
@@ -141,7 +140,7 @@ def _resolve_canvas_id(canvas, base_url, token, course_id, code, canvas_id=None)
     # chapter-5 exam sat on page 2). A truncated list is worse than an error because it reads as
     # an answer. `canvas_rest.client.get` already walks the pages and accepts a token string or a
     # CanvasSession, so there is no second page-walk to maintain here.
-    from canvas_rest.client import get as _rest_get
+    from ..rest.client import get as _rest_get
     asmts = _rest_get(base_url, token, f"/courses/{course_id}/assignments",
                       params={"per_page": 100}) or []
     if isinstance(asmts, dict):
