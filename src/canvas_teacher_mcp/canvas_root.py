@@ -43,9 +43,15 @@ The file is the client's, not this server's:
 
     Claude Desktop   ~/Library/Application Support/Claude/claude_desktop_config.json
     Claude Code      .mcp.json in the project, or ~/.claude.json
-    Codex            ~/.codex/config.toml   ([mcp_servers.canvas-teacher.env])
+    Codex            ~/.codex/config.toml
     VS Code          .vscode/mcp.json
     Cursor           ~/.cursor/mcp.json
+
+Codex is TOML rather than JSON, and its environment is a table of its own — the one form that
+does not follow from the JSON above:
+
+    [mcp_servers.canvas-teacher.env]
+    CANVAS_LMS_ROOT = "~/Teaching"
 
 Add the one key inside the existing canvas-teacher entry. Do not rewrite the file — the other
 servers declared in it belong to the instructor.

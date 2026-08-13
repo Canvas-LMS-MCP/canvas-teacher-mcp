@@ -30,6 +30,22 @@ not inherit your shell `PATH`, so if the server does not appear, give the full p
 **Claude Code** — the same JSON in `.mcp.json` at your project root. Servers attach when a session
 starts, so open a new one.
 
+**Codex** — `~/.codex/config.toml`, TOML rather than JSON, with the environment in a table of its
+own:
+
+```toml
+[mcp_servers.canvas-teacher]
+command = "uvx"
+args = ["canvas-teacher-mcp"]
+
+[mcp_servers.canvas-teacher.env]
+CANVAS_LMS_ROOT = "/Users/you/Teaching"
+```
+
+Use a plain chat or the `codex` CLI: inside a Codex Desktop **project**, no MCP tools appear at
+all, while `codex mcp list` still shows the server — which makes it read as a setup mistake when
+it is not (openai/codex #25843).
+
 `CANVAS_LMS_ROOT` is the one thing you choose: the folder your courses live in. It is **required**
 — the server keeps no root of its own, so this declaration is the only place it is written, and
 you can always see what it is. Leave it out and the server says so on connect, telling your

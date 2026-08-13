@@ -10,6 +10,7 @@ process. The declaration has the same shape everywhere; only the file differs.
 | Claude Desktop (macOS) | `~/Library/Application Support/Claude/claude_desktop_config.json` |
 | Claude Code, this project | `<project>/.mcp.json` |
 | Claude Code, everywhere | `~/.claude.json` |
+| Codex | `~/.codex/config.toml` — TOML, see below |
 | VS Code | `.vscode/mcp.json` |
 | Cursor | `~/.cursor/mcp.json` |
 | Zed | `~/.config/zed/settings.json` |
@@ -34,6 +35,28 @@ process. The declaration has the same shape everywhere; only the file differs.
 | `command` | what to run |
 | `args` | its arguments |
 | `env` | environment variables for that process |
+
+## Codex
+
+Same server, TOML instead of JSON, and the environment is a table of its own:
+
+```toml
+[mcp_servers.canvas-teacher]
+command = "uvx"
+args = ["canvas-teacher-mcp"]
+
+[mcp_servers.canvas-teacher.env]
+CANVAS_LMS_ROOT = "/Users/you/Teaching"
+```
+
+`codex mcp list` shows what Codex has read; the CLI and a plain chat both attach the server.
+
+**Inside a Codex Desktop project, MCP tools do not appear** — none of them, including servers
+that were already working. `codex mcp list` still shows the server, which is what makes it look
+like a configuration problem. It is not one, and nothing here can fix it: openai/codex #25843,
+#30343, #10499. Use a plain chat or the `codex` CLI.
+
+## Running an unreleased change
 
 To run a change that is not released yet, point at the repository instead:
 
