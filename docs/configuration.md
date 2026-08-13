@@ -35,11 +35,16 @@ process. The declaration has the same shape everywhere; only the file differs.
 | `args` | its arguments |
 | `env` | environment variables for that process |
 
-Before the package is on PyPI, run it from git:
+To run a change that is not released yet, point at the repository instead:
 
 ```json
 "args": ["--from", "git+https://github.com/Canvas-LMS-MCP/canvas-teacher-mcp", "canvas-teacher-mcp"]
 ```
+
+`uvx` caches the list of released versions as well as the packages themselves, so a new release
+can go unnoticed — and `uv cache clean <package>` clears the download, not the list. Put
+`--refresh-package canvas-teacher-mcp` in front of the package name to have the check happen on
+every start, or run it that way once when you want to update.
 
 ## First run
 
@@ -87,7 +92,7 @@ file — is your choice, and the server neither knows nor cares.
 │  └─ Canvas-Auth/
 │     ├─ <school>.json                 {"base_url": "...", "token": "..."}
 │     └─ storageState/<school>/        cookie schools: browser profile + cookies.json
-├─ <SCHOOL>/<ORG>/<COURSE>/
+├─ <SCHOOL>/<COURSE>/
 │  └─ .claude/
 │     ├─ course-config/<slug>.json     the course's coordinates
 │     ├─ input/                        material you bring in
@@ -98,4 +103,11 @@ file — is your choice, and the server neither knows nor cares.
 `setup` creates this. No path is compiled into the server, and one school means one school folder —
 the shape does not change.
 
-`chmod 600` every file under `Canvas-Auth/`, and keep that directory out of git.
+`<SCHOOL>/<COURSE>` is what registration proposes. Levels between them are fine and nothing counts
+them, so a school whose departments run separately can register with
+`course_dir=<SCHOOL>/<DEPT>/<COURSE>` and keep it. The school belongs in the path either way: a
+coordinate nobody can see is how work reaches the wrong course.
+
+Credential files are written `0600`, and an existing world-readable one is corrected the next time
+setup runs — you are not asked to do it. Keep `Canvas-Auth/` out of git: one token in a history is
+a token to revoke.

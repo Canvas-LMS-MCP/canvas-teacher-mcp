@@ -15,10 +15,7 @@ Point your MCP client at it. Nothing to install by hand — `uvx` fetches it on 
   "mcpServers": {
     "canvas-teacher": {
       "command": "uvx",
-      "args": [
-        "--from", "git+https://github.com/Canvas-LMS-MCP/canvas-teacher-mcp",
-        "canvas-teacher-mcp"
-      ],
+      "args": ["canvas-teacher-mcp"],
       "env": { "CANVAS_LMS_ROOT": "/absolute/path/to/your/teaching/folder" }
     }
   }
@@ -41,6 +38,20 @@ assistant which file to add it to.
 The folder need not exist yet; setup creates what it needs. An environment already exporting
 `CANVAS_LMS_ROOT` works too — the server just reads the environment, and does not care how a
 value got there.
+
+**Updating.** `uvx` remembers which versions exist, not only the ones it downloaded, so a new
+release can go unnoticed. To pick one up, either run it once with `--refresh-package`:
+
+```
+uvx --refresh-package canvas-teacher-mcp canvas-teacher-mcp
+```
+
+or put those two arguments in front of the package name in the declaration above, and the check
+happens every time your client starts it. (`uv cache clean canvas-teacher-mcp` does **not** do
+this — it removes the downloaded package and keeps the stale list of versions.)
+
+To try a change before it is released, point at the repository instead:
+`"args": ["--from", "git+https://github.com/Canvas-LMS-MCP/canvas-teacher-mcp", "canvas-teacher-mcp"]`
 
 ## First run
 
@@ -128,14 +139,19 @@ Authentication is per SCHOOL, so any course on that domain is reachable by id wi
 │  ├─ Canvas-Auth/<school>.json     your credentials — never leaves this machine
 │  ├─ skills/                       (optional) the methods, if you copy them to edit
 │  └─ CourseGlobalWorkflow/         (optional) the working rules, same
-└─ CS101/
-   └─ .claude/
-      ├─ course-config/cs101.json   the course's coordinates
-      ├─ input/                     material you bring in
-      └─ output/<kind>/             everything the server writes
+└─ AVC/                             one folder per school
+   └─ CS101/
+      └─ .claude/
+         ├─ course-config/cs101.json   the course's coordinates
+         ├─ input/                     material you bring in
+         └─ output/<kind>/             everything the server writes
 ```
 
-`chmod 600` your `Canvas-Auth/*.json`, and keep that folder out of git.
+Registering a course proposes `<school>/<course>`; pass `course_dir` for anything else, and any
+depth works — a school whose departments are separate can put a level between them.
+
+Credential files are written owner-only, and an existing world-readable one is corrected the next
+time setup runs. Keep `Canvas-Auth/` out of git: one token in a history is a token to revoke.
 
 **Skills and the working rules need no copying.** They are read from inside the package and work as
 they are. Copy them into your tree only when you want to CHANGE them — grading policy, late grace,
