@@ -31,6 +31,13 @@ All notable changes to this project will be documented here. The format follows 
   fixable bug when nothing is missing.
 
 ### Fixed
+- A course URL is enough to start. It names the school too, so an unknown school is registered
+  from it and the URL is held beside the credential; once the token is in place the next `setup`
+  registers the course without being told the URL again. Before, the instructor was sent away for
+  a different URL — and the course URL is the only address a browser ever shows them.
+- `parse_question_bank` says why it wrote nothing instead of returning a bare null. Three sessions
+  read that null as "this course has no output directory" when the answer was that no course had
+  been named.
 - `parse_question_bank` takes `course` and `save`, and writes the source text, the quiz JSON and
   the preview into that course's `quiz_build/Ch<N>/` — what the command line has always written.
   The tool had no course, so it could not name an output directory, and the skill document went

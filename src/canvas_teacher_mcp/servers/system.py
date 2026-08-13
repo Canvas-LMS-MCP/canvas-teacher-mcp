@@ -97,6 +97,7 @@ def setup(canvas_url: str | None = None, token: str | None = None,
         ]
         return "\n".join(lines)
 
+    finished = _finish_pending(auth)     # a token arrived; the course it was waiting on can go in
     lines.append("schools: " + ", ".join(schools))
     for path in sorted(auth.glob("*.json")):
         # The file's own base_url, never a domain rebuilt from the filename — the filename is a
@@ -111,6 +112,8 @@ def setup(canvas_url: str | None = None, token: str | None = None,
         except Exception as exc:  # noqa: BLE001 — per-school status, not a failure of setup
             lines.append(f"  {path.stem}: not usable yet — {exc}")
 
+    if finished:
+        lines += ["", "courses that were waiting on a token:"] + finished
     lines += _course_status()
     lines += [
         "",
@@ -119,6 +122,45 @@ def setup(canvas_url: str | None = None, token: str | None = None,
         "so an edit there is lost, while an edit in the course root survives.",
     ]
     return "\n".join(lines)
+
+
+def _remember_pending(auth_path, course_url: str) -> None:
+    """Hold the course URL beside the credential it is waiting on.
+
+    The instructor gave the URL once; asking for it again after the token would be asking for
+    something already said. Removed as soon as the course registers.
+    """
+    p = Path(auth_path)
+    cfg = json.loads(p.read_text())
+    cfg["pending_course_url"] = course_url
+    p.write_text(json.dumps(cfg, indent=2) + "\n")
+    os.chmod(p, 0o600)
+
+
+def _finish_pending(auth: Path) -> list:
+    """Register any course that was waiting on a token that has since arrived."""
+    from .. import course_config
+
+    out = []
+    for path in sorted(auth.glob("*.json")):
+        try:
+            cfg = json.loads(path.read_text())
+        except Exception:  # noqa: BLE001 — a damaged credential is reported by the school loop
+            continue
+        url = cfg.get("pending_course_url")
+        if not url or not cfg.get("token"):
+            continue
+        try:
+            result = course_config.register_course(url)
+        except Exception as exc:  # noqa: BLE001 — say why, leave the URL for the next attempt
+            out.append(f"  {path.stem}: {url} still not registered — {exc}")
+            continue
+        cfg.pop("pending_course_url")
+        path.write_text(json.dumps(cfg, indent=2) + "\n")
+        os.chmod(path, 0o600)
+        out.append("  %s: registered %s as '%s' — %s"
+                   % (path.stem, result.get("course_code"), result["slug"], result["path"]))
+    return out
 
 
 def _root_problem(tree) -> str | None:
@@ -166,16 +208,34 @@ def _course_status() -> list:
 
 
 def _register_course(course_url: str, slug: str | None, course_dir: str | None) -> str:
-    """One course, from its Canvas URL. Everything else is proposed and overridable."""
+    """One course, from its Canvas URL. Everything else is proposed and overridable.
+
+    The course URL is the only address an instructor has — it is what the browser shows — and it
+    names the school too. So a course URL for an unknown school registers the school from it and
+    asks for the token, rather than sending the instructor away for a different URL. The URL is
+    kept beside the credential so the next call finishes the job without being told again.
+    """
     from .. import course_config
+    from ..auth import token as token_auth
 
     try:
         result = course_config.register_course(course_url, slug=slug, course_dir=course_dir)
     except Exception as exc:  # noqa: BLE001 — the reason is the answer
+        # Naming the course needs one Canvas call, so a missing or unusable token stops here.
+        # The school comes out of this same URL; register it and hold the URL for the retry.
+        try:
+            reg = token_auth.register_school(course_url)
+            _remember_pending(reg["path"], course_url)
+        except Exception:  # noqa: BLE001 — fall through to the plain reason below
+            return f"Could not register {course_url}: {exc}"
         return (
-            f"Could not register {course_url}: {exc}\n"
-            "If the school is not registered yet, do that first: call setup with canvas_url set "
-            "to the Canvas address."
+            f"Created {reg['path']} for this course's school.\n\n"
+            "Its token is empty, and naming the course needs one Canvas call, so the course is "
+            "not registered yet.\n\n"
+            "Paste the token into that file's empty \"token\" field and call setup again — this "
+            "URL is remembered, so the course finishes by itself. (Or tell me the token and I "
+            "will store it; it then lives in this conversation's record as well as the file.)\n\n"
+            "The token comes from Canvas: Account -> Settings -> + New Access Token."
         )
 
     if result["status"] == "already_registered":

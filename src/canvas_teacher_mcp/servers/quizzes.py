@@ -131,15 +131,26 @@ def parse_question_bank(text: str, chapter: int = 1, points: float = 1,
     questions, problems = bank_parse.parse(text)
     items = bank_parse.to_items(questions, int(chapter), points)
 
-    written, out = None, None
+    # A null with no reason is how the last three sessions went wrong: the caller reads "there is
+    # no output directory" when what happened is that nobody said which course.
+    written, out, note = None, None, None
     if course:
         out = bank_parse.build_dir(course, int(chapter))
         if save:
             written = bank_parse.write_build(out, text, questions, items, int(chapter),
                                              "pasted text")
+        else:
+            note = ("Nothing was written. Call again with save=true to put the source, the JSON "
+                    "and the preview in %s." % out)
+    else:
+        note = ("No course was given, so there is nowhere to write: an output directory belongs "
+                "to a course and this server has no notion of a current one. Call again with "
+                "course='<slug>' (list_courses names them) and save=true. The course config "
+                "never stores an output directory — it is derived, and get_course returns it.")
     return {
         "build_dir": out,
         "written": written,
+        "note": note,
         "count": len(items),
         # Handed straight to add_quiz_questions. The parser's own shape is its business; a caller
         # asked to translate between two of our formats will eventually get it wrong.
