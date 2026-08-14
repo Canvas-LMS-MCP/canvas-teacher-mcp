@@ -31,6 +31,9 @@ All notable changes to this project will be documented here. The format follows 
   fixable bug when nothing is missing.
 
 ### Fixed
+- An external PDF link carrying text raised `NameError`: the branch still called a helper renamed
+  when detection became extraction. It now surfaces the PDF's pictures as viewable items, which
+  the attached-file branch has done since that rename.
 - Adding questions rebuilds the description summary and clears Canvas's stale counts. A quiz whose
   questions changed and whose description did not states the wrong number of questions and the
   wrong total, and `finalize_quiz` reads as an optional last step nobody has to take.
