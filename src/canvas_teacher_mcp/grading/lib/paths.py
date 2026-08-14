@@ -1,11 +1,11 @@
 """Portable path notation for anything this engine WRITES TO DISK.
 
-WHY. A tree can be one synced folder mounted on more than one machine, each with a different
-home. Every record this engine writes stores `os.path.realpath()` output, so each file carries
-the home of whichever machine happened to run it, and read back elsewhere those paths name a
-home that does not exist. That is how a grade record's `"view_manifest"` became unopenable: the
-render took the stored path, could not open it, printed one SKIPPED line, and reported success
-on a record carrying no proof.
+WHY. The tree can be one synced folder mounted on more than one machine, each with its own
+home directory. Every record this engine writes stores `os.path.realpath()` output, so each
+file carries the home of whichever machine happened to run it. Read back on the other machine
+those paths name a home that does not exist. A grade record written on one machine held an
+absolute `view_manifest` path; the render took it, could not open it, printed one SKIPPED line
+and reported success on a record with no proof.
 
 THE NOTATION IS `~`, NOT `$HOME`. `$HOME` is expanded by a shell; Python is not a shell, so
 `open("$HOME/x")` simply fails and every read site would have to remember `expandvars` —

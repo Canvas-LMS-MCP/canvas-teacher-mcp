@@ -15,9 +15,9 @@ parsing the submission link. REMOVE them then. (See working log / playbook.)
 import re
 
 # --- moved out: login-free general code (re-exported for back-compat) ---
-from ...auth.token import get_token                               # noqa: F401
-from ...rest.client import get, get_raw, put                      # noqa: F401
-from ...rest.resources import (                                   # noqa: F401
+from ...auth.token import get_token                                   # noqa: F401
+from ...rest.client import get, get_raw, put                          # noqa: F401
+from ...rest.resources import (                                       # noqa: F401
     fetch_submissions, fetch_assignment, fetch_users, fetch_rubric,
 )
 

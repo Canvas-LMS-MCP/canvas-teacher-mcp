@@ -967,16 +967,24 @@ def _read_external_pdf(item, ctx):
     if kind != "pdf":
         return {"status": "failed", "reason": f"unexpected magic for external pdf: {kind}"}
     text = _read_pdf_bytes_to_text(path)
-    has_images = _pdf_has_images(path)
+    # Same as the attached-file path above: pull the pictures out so each becomes its own
+    # viewable item. This branch still called `_pdf_has_images`, which stopped existing when
+    # detection turned into extraction (2026-08-08), so any external PDF link carrying text
+    # raised NameError and the item came back failed — silently, since only that branch reaches
+    # this line.
+    imgs = _pdf_extract_images(path, os.path.dirname(path))
     if not text:
         return {
             "status": "ok",
             "text": "",
             "is_visual": True,
             "magic": "pdf",
+            "path": path,
+            "image_paths": imgs,
             "reason": "pdftotext empty — likely scanned",
         }
-    return {"status": "ok", "text": text, "is_visual": has_images, "magic": "pdf"}
+    return {"status": "ok", "text": text, "is_visual": bool(imgs), "magic": "pdf",
+            "path": path, "image_paths": imgs}
 
 
 def _read_body(item, ctx):

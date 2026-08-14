@@ -201,7 +201,9 @@ def build_and_place(course_slug, module_id, *, week, intro, topic_bullets, revie
       last week of a term owns the final-exam module's items even though they live in their own
       module; the pages are still created in `module_id` only."""
     cfg = _cfg(course_slug)
-    base, tok = cfg["canvas_base_url"], __import__("canvas_token_auth").get_token(cfg["canvas_token_env"], cfg["canvas_base_url"])
+    from ..auth.token import get_token
+
+    base, tok = cfg["canvas_base_url"], get_token(cfg["canvas_token_env"], cfg["canvas_base_url"])
     C = cfg["course_id"]
     graded, todo, pages = read_module(base, tok, C, module_id, skip_labs=skip_labs,
                                       skip_todo=skip_todo, exclude_content_ids=exclude_content_ids)

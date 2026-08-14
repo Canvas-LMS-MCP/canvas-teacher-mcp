@@ -290,29 +290,28 @@ def commit_quality_contract():
     # A RE-GRADE MAY NOT LOWER A POSTED SCORE. The rule lived only in prose, so it held only
     # while someone compared every row by hand — and the failure is invisible: the student who
     # resubmitted and did slightly worse quietly loses marks for having resubmitted at all.
-    import json as _json
-    import os as _os
-    import tempfile
     from .report_generator import regrade_floor_issues
-    _posted = {"students": [{"uid": 1, "score": 45}, {"uid": 2, "score": 30}]}
-    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as _fh:
-        _json.dump(_posted, _fh)
-        _pp = _fh.name
+    # The floor is `entered_score` — what the gradebook already holds. This test used to write a
+    # posted-grades file and pass its path as a second argument, from when the function
+    # reconstructed the floor from disk; that was removed on 2026-08-03 because it read the
+    # Stage-A record, whose score is a 0 placeholder, so nothing was ever blocked. The test kept
+    # the old call and had been raising TypeError ever since — a gate reporting on itself.
     _mk = lambda uid, tot, **kw: dict({"uid": uid, "name": "T", "earned": {"x": tot}}, **kw)
     for label, cond in [
             ("a lower re-grade BLOCKS",
-             bool(regrade_floor_issues({"students": [_mk(1, 44)]}, _pp))),
+             bool(regrade_floor_issues({"students": [_mk(1, 44, entered_score=45)]}))),
             ("an equal or higher re-grade passes",
-             not regrade_floor_issues({"students": [_mk(1, 45), _mk(2, 31)]}, _pp)),
+             not regrade_floor_issues({"students": [_mk(1, 45, entered_score=45),
+                                                    _mk(2, 31, entered_score=30)]})),
             ("bonus counts toward the floor",
-             not regrade_floor_issues({"students": [_mk(1, 40, bonus=5)]}, _pp)),
+             not regrade_floor_issues({"students": [_mk(1, 40, bonus=5, entered_score=45)]})),
             ("allow_lower is the deliberate escape hatch",
-             not regrade_floor_issues({"students": [_mk(1, 20, allow_lower=True)]}, _pp)),
-            ("no prior record => first grading, gate silent",
-             not regrade_floor_issues({"students": [_mk(1, 1)]}, "/nonexistent.json"))]:
+             not regrade_floor_issues({"students": [_mk(1, 20, entered_score=45,
+                                                        allow_lower=True)]})),
+            ("never graded => floor is 0, gate silent",
+             not regrade_floor_issues({"students": [_mk(1, 1)]}))]:
         ok = ok and cond
         lines.append(f"  {'OK ' if cond else 'FAIL'}  re-grade floor {label}")
-    _os.unlink(_pp)
 
     # THE AMBIGUOUS CASE: commits look like assembly, the write-up describes debugging. It is
     # neither full marks nor the floor, and the render must refuse to let it pass undecided.
