@@ -97,6 +97,15 @@ def _put_comment(s, base, cid, aid, uid, comment, attempt=None):
 
 
 def _put_quiz_scores(s, base, cid, quiz_id, qsid, attempt, question_scores, fudge=None):
+    # NO LATE FIELDS HERE, BY DESIGN — do not add them.
+    # An assignment has ONE submission time, so Canvas deducts once from the whole score, and
+    # `_put_grade` passes `late_policy_status` for it. A quiz has one time PER ATTEMPT, which
+    # Canvas cannot express: its late policy takes a single submission time and cannot deduct
+    # differently per attempt. So the engine does it — each attempt is graded at its own
+    # timestamp and its deduction is ALREADY INSIDE the question scores below (the quiz HOURS
+    # commit-late tier; `GRADING.md` Part D, "Every attempt, graded on its own"). Adding a late
+    # field would deduct twice for the same lateness. `grades_json` omits those fields for a
+    # quiz for this reason — their absence is the decision, not an oversight.
     """PUT per-QUESTION scores for a quiz submission (GRADING Part D §1.1-1.2).
 
     A quiz total is computed by Canvas from the score written into EACH question of

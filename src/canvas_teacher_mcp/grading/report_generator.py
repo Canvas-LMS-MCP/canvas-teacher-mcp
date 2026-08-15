@@ -401,6 +401,11 @@ def grades_json(data):
             # `score` stays on the record for the report/dry-run DISPLAY only.
             rec["fudge_points"] = 0
             rec["attempts"] = _quiz_attempts(s, rubric, qids)
+            # NOT an omission: the lateness is already in the question scores. Canvas's late
+            # policy works off ONE submission time and cannot deduct per attempt, so the engine
+            # scores each attempt at its own timestamp with the quiz HOURS commit-late tier
+            # (`GRADING.md` Part D). Restoring these fields would deduct twice for the same
+            # lateness. The poster sends what it is given, so the decision has to be made here.
             rec.pop("late_policy_status", None)
             rec.pop("seconds_late_override", None)
         # AUDIT TAG (non-blocking): record where Stage-B's commit score deviates from the
